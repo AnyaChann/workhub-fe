@@ -2,7 +2,6 @@
   width: 260px;
   background-color: white;
   border-right: 1px solid #e5e5e5;
-  padding: 2rem 0;
   position: sticky;
   top: 70px;
   height: calc(100vh - 70px);

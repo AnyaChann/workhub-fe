@@ -6,6 +6,7 @@ import ActiveJobs from './components/ActiveJobs/ActiveJobs';
 import Drafts from './components/Drafts/Drafts';
 import Expired from './components/Expired/Expired';
 import Brands from './components/Brands/Brands';
+import Account from './components/Account/Account';
 import SupportButton from './components/SupportButton/SupportButton';
 
 const DashboardLayout = () => {
@@ -21,6 +22,8 @@ const DashboardLayout = () => {
         return <Expired />;
       case 'brands':
         return <Brands />;
+      case 'account':
+        return <Account />;
       default:
         return <ActiveJobs />;
     }
@@ -28,7 +31,7 @@ const DashboardLayout = () => {
 
   return (
     <div className="dashboard">
-      <DashboardHeader />
+      <DashboardHeader onNavigate={setSelectedTab} />
       
       <div className="dashboard-content">
         <DashboardSidebar 

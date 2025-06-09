@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './AccountDropdown.css';
 
-const AccountDropdown = () => {
+const AccountDropdown = ({ onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -19,7 +19,9 @@ const AccountDropdown = () => {
   }, []);
 
   const handleAccount = () => {
-    console.log('Account settings');
+    if (onNavigate) {
+      onNavigate('account');
+    }
     setIsOpen(false);
   };
 
