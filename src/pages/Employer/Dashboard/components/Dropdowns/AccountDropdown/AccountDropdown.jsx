@@ -33,7 +33,9 @@ const AccountDropdown = ({ onNavigate }) => {
   };
 
   const handleInventory = () => {
-    console.log('Inventory');
+    if (onNavigate) {
+      onNavigate('inventory');
+    }
     setIsOpen(false);
   };
 

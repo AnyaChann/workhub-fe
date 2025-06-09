@@ -24,6 +24,11 @@
   letter-spacing: -0.5px;
 }
 
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .header-actions {
   display: flex;
   align-items: center;

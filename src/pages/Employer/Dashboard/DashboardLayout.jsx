@@ -8,6 +8,7 @@ import Expired from './components/Expired/Expired';
 import Brands from './components/Brands/Brands';
 import Account from './components/Account/Account';
 import ManageUsers from './components/ManageUsers/ManageUsers';
+import Inventory from './components/Inventory/Inventory';
 import SupportButton from './components/SupportButton/SupportButton';
 
 const DashboardLayout = () => {
@@ -27,6 +28,8 @@ const DashboardLayout = () => {
         return <Account />;
       case 'manage-users':
         return <ManageUsers />;
+      case 'inventory':
+        return <Inventory />;
       default:
         return <ActiveJobs />;
     }
