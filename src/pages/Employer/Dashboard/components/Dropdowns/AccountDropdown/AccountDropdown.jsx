@@ -26,7 +26,9 @@ const AccountDropdown = ({ onNavigate }) => {
   };
 
   const handleManageUsers = () => {
-    console.log('Manage users');
+    if (onNavigate) {
+      onNavigate('manage-users');
+    }
     setIsOpen(false);
   };
 
