@@ -20,7 +20,7 @@ const CompaniesSection = () => {
   return (
     <section className="companies-section">
       <div className="container">
-        <h2 className="companies-title">Companies currently hiring on WorkHub</h2>
+        <h2 className="companies-title">Companies currently hiring on WorkHub®</h2>
         <div className="companies-grid">
           {companies.map((company, index) => (
             <div key={index} className="company-card">

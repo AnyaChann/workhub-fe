@@ -119,7 +119,7 @@ const Register = () => {
     <div className="register-page">
       <div className="register-container">
         <div className="register-header">
-          <Link to="/" className="logo">careerone</Link>
+          <Link to="/" className="logo">WorkHub®</Link>
         </div>
         
         <div className="register-form-container">

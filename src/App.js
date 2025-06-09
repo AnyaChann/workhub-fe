@@ -4,6 +4,7 @@ import './App.css';
 import Home from './pages/Employer/Home/Home';
 import Login from './pages/Auth/Login/Login';
 import Register from './pages/Auth/Register/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword/ForgotPassword';
 
 function App() {
   return (
@@ -14,8 +15,8 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           {/* Future routes */}
-          {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
           {/* <Route path="/terms" element={<Terms />} /> */}
           {/* <Route path="/privacy" element={<Privacy />} /> */}
           

@@ -55,7 +55,7 @@ const Footer = () => {
         
         <div className="footer-bottom">
           <div className="footer-copyright">
-            © {currentYear} WorkHub. All rights reserved.
+            © {currentYear} WorkHub®. All rights reserved.
           </div>
           <div className="footer-social">
             <a href="#" aria-label="Facebook">📘</a>

@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Login.css';
+import './ForgotPassword.css';
 
-const Login = () => {
+const ForgotPassword = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const validateField = (name, value) => {
     let error = '';
-
+    
     switch (name) {
       case 'email':
         if (!value) {
@@ -22,17 +21,10 @@ const Login = () => {
           error = 'Please enter a valid email address';
         }
         break;
-      case 'password':
-        if (!value) {
-          error = 'The password field is required';
-        } else if (value.length < 6) {
-          error = 'Password must be at least 6 characters';
-        }
-        break;
       default:
         break;
     }
-
+    
     return error;
   };
 
@@ -68,7 +60,7 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     // Validate all fields
     const newErrors = {};
     Object.keys(formData).forEach(key => {
@@ -78,31 +70,58 @@ const Login = () => {
 
     setErrors(newErrors);
     setTouched({
-      email: true,
-      password: true
+      email: true
     });
 
     if (Object.keys(newErrors).length === 0) {
-      console.log('Login submitted:', formData);
-      // Handle login logic here
+      console.log('Forgot password submitted:', formData);
+      setIsSubmitted(true);
+      // Handle forgot password logic here
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
-          <Link to="/" className="logo">WorkHub®</Link>
+  if (isSubmitted) {
+    return (
+      <div className="forgot-password-page">
+        <div className="forgot-password-container">
+          <div className="forgot-password-header">
+            <Link to="/" className="logo">WorkHub®</Link>
+          </div>
+          
+          <div className="forgot-password-form-container">
+            <h1 className="forgot-password-title">Check your email</h1>
+            <p className="success-message">
+              We've sent a password reset link to <strong>{formData.email}</strong>
+            </p>
+            <div className="forgot-password-footer">
+              <p className="signin-prompt">
+                Remember your password? <Link to="/login" className="signin-link">Sign in</Link>
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="login-form-container">
-          <h1 className="login-title">Sign in</h1>
+        <div className="support-button">
+          <button className="support-btn">
+            <span className="support-icon">❓</span>
+            Support
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-          <form onSubmit={handleSubmit} className="login-form">
+  return (
+    <div className="forgot-password-page">
+      <div className="forgot-password-container">
+        <div className="forgot-password-header">
+          <Link to="/" className="logo">WorkHub®</Link>
+        </div>
+        
+        <div className="forgot-password-form-container">
+          <h1 className="forgot-password-title">Reset password</h1>
+          
+          <form onSubmit={handleSubmit} className="forgot-password-form">
             <div className="form-group">
               <label htmlFor="email" className="form-label">Email address</label>
               <input
@@ -119,42 +138,18 @@ const Login = () => {
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
-            <div className="form-group">
-              <div className="password-header">
-                <label htmlFor="password" className="form-label">Password</label>
-                <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
-              </div>
-              <div className="password-input-container">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  placeholder="Enter password"
-                  className={`form-input ${errors.password ? 'error' : ''}`}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="password-toggle"
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
-              </div>
-              {errors.password && <span className="error-message">{errors.password}</span>}
-            </div>
+            <p className="reset-info">
+              A password reset link will be sent to your email address
+            </p>
 
-            <button type="submit" className="sign-in-button">
-              Sign in
+            <button type="submit" className="send-reset-button">
+              Send reset email
             </button>
           </form>
 
-          <div className="login-footer">
-            <p className="signup-prompt">
-              Don't have an account? <Link to="/register" className="register-link">REGISTER</Link>
+          <div className="forgot-password-footer">
+            <p className="signin-prompt">
+              Remember your password? <Link to="/login" className="signin-link">Sign in</Link>
             </p>
           </div>
         </div>
@@ -170,4 +165,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ForgotPassword;
