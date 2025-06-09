@@ -16,12 +16,11 @@ const Header = () => {
               <span className="external-icon">↗</span>
             </Link>
             <Link to="#" className="nav-link">Pricing</Link>
-            <Link to="#" className="nav-link">Login</Link>
+            <Link to="/login" className="nav-link">Login</Link>
             <div className="header-actions">
               <button className="btn-post-job">Post a job</button>
             </div>
           </nav>
-
         </div>
       </div>
     </header>
