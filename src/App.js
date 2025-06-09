@@ -5,6 +5,7 @@ import Home from './pages/Employer/Home/Home';
 import Login from './pages/Auth/Login/Login';
 import Register from './pages/Auth/Register/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword/ForgotPassword';
+import NotFound from './pages/NotFound/NotFound';
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
           {/* <Route path="/privacy" element={<Privacy />} /> */}
           
           {/* 404 route */}
-          <Route path="*" element={<div>Page Not Found</div>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>
