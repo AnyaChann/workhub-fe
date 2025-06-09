@@ -8,6 +8,33 @@ const Login = () => {
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch (name) {
+      case 'email':
+        if (!value) {
+          error = 'The email field is required';
+        } else if (!/\S+@\S+\.\S+/.test(value)) {
+          error = 'Please enter a valid email address';
+        }
+        break;
+      case 'password':
+        if (!value) {
+          error = 'The password field is required';
+        } else if (value.length < 6) {
+          error = 'Password must be at least 6 characters';
+        }
+        break;
+      default:
+        break;
+    }
+    
+    return error;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,12 +42,50 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login submitted:', formData);
-    // Handle login logic here
+    
+    // Validate all fields
+    const newErrors = {};
+    Object.keys(formData).forEach(key => {
+      const error = validateField(key, formData[key]);
+      if (error) newErrors[key] = error;
+    });
+
+    setErrors(newErrors);
+    setTouched({
+      email: true,
+      password: true
+    });
+
+    if (Object.keys(newErrors).length === 0) {
+      console.log('Login submitted:', formData);
+      // Handle login logic here
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -31,7 +96,7 @@ const Login = () => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <Link to="/" className="logo">WorkHub</Link>
+          <Link to="/" className="logo">careerone</Link>
         </div>
         
         <div className="login-form-container">
@@ -46,10 +111,12 @@ const Login = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
                 placeholder="Enter your email"
-                className="form-input"
+                className={`form-input ${errors.email ? 'error' : ''}`}
                 required
               />
+              {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
             <div className="form-group">
@@ -64,8 +131,9 @@ const Login = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
                   placeholder="Enter password"
-                  className="form-input"
+                  className={`form-input ${errors.password ? 'error' : ''}`}
                   required
                 />
                 <button
@@ -76,6 +144,7 @@ const Login = () => {
                   {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
               </div>
+              {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
 
             <button type="submit" className="sign-in-button">
