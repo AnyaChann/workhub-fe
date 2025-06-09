@@ -10,17 +10,49 @@ import Account from './components/Account/Account';
 import ManageUsers from './components/Account/ManageUsers/ManageUsers';
 import Inventory from './components/Account/Inventory/Inventory';
 import Profile from './components/Account/Profile/Profile';
+import CreateJob from './components/CreateJob/CreateJob';
 import SupportButton from './components/SupportButton/SupportButton';
 
 const DashboardLayout = () => {
   const [selectedTab, setSelectedTab] = useState('active-jobs');
+  const [showCreateJob, setShowCreateJob] = useState(false);
+
+  const handleCreateJob = () => {
+    setShowCreateJob(true);
+  };
+
+  const handleCloseCreateJob = () => {
+    setShowCreateJob(false);
+  };
+
+  const handleSaveJob = (jobData) => {
+    console.log('Job saved:', jobData);
+    // TODO: Save job to backend
+    setShowCreateJob(false);
+    
+    // Navigate to appropriate tab based on job status
+    if (jobData.status === 'draft') {
+      setSelectedTab('drafts');
+    } else {
+      setSelectedTab('active-jobs');
+    }
+  };
 
   const renderMainContent = () => {
+    if (showCreateJob) {
+      return (
+        <CreateJob 
+          onClose={handleCloseCreateJob}
+          onSave={handleSaveJob}
+        />
+      );
+    }
+
     switch(selectedTab) {
       case 'active-jobs':
-        return <ActiveJobs />;
+        return <ActiveJobs onCreateJob={handleCreateJob} />;
       case 'drafts':
-        return <Drafts />;
+        return <Drafts onCreateJob={handleCreateJob} />;
       case 'expired':
         return <Expired />;
       case 'brands':
@@ -34,24 +66,29 @@ const DashboardLayout = () => {
       case 'profile':
         return <Profile />;
       default:
-        return <ActiveJobs />;
+        return <ActiveJobs onCreateJob={handleCreateJob} />;
     }
   };
 
   return (
     <div className="dashboard">
-      <DashboardHeader onNavigate={setSelectedTab} />
+      <DashboardHeader 
+        onNavigate={setSelectedTab}
+        onCreateJob={handleCreateJob}
+      />
       
       <div className="dashboard-content">
-        <DashboardSidebar 
-          selectedTab={selectedTab} 
-          onTabChange={setSelectedTab} 
-        />
+        {!showCreateJob && (
+          <DashboardSidebar 
+            selectedTab={selectedTab} 
+            onTabChange={setSelectedTab} 
+          />
+        )}
         
         {renderMainContent()}
       </div>
 
-      <SupportButton />
+      {!showCreateJob && <SupportButton />}
     </div>
   );
 };

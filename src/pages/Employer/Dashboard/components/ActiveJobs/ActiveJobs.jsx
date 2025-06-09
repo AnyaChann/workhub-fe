@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import './ActiveJobs.css';
 
-const ActiveJobs = () => {
+const ActiveJobs = ({ onCreateJob }) => {
   const [showOnlyMyJobs, setShowOnlyMyJobs] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handlePostNewJob = () => {
-    console.log('Post new job');
+  const handleCreateJob = () => {
+    if (onCreateJob) {
+      onCreateJob();
+    }
   };
 
   return (
     <main className="dashboard-main">
       <div className="main-header">
         <h1 className="page-title">Active jobs</h1>
-        
+
         <div className="page-controls">
           <label className="toggle-switch">
             <input 
@@ -47,7 +49,7 @@ const ActiveJobs = () => {
           <p className="empty-description">
             Start by posting your first job to find great candidates.
           </p>
-          <button className="post-job-btn" onClick={handlePostNewJob}>
+          <button className="post-job-btn" onClick={handleCreateJob}>
             + Post a new job
           </button>
         </div>
