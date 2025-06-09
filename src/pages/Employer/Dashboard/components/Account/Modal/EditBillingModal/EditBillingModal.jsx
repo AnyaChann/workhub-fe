@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import '../EditCompanyModal/EditCompanyModal.css';
 import './EditBillingModal.css';
 
 const EditBillingModal = ({ isOpen, onClose, billingData, onSave }) => {

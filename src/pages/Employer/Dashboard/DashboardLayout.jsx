@@ -7,8 +7,9 @@ import Drafts from './components/Drafts/Drafts';
 import Expired from './components/Expired/Expired';
 import Brands from './components/Brands/Brands';
 import Account from './components/Account/Account';
-import ManageUsers from './components/ManageUsers/ManageUsers';
-import Inventory from './components/Inventory/Inventory';
+import ManageUsers from './components/Account/ManageUsers/ManageUsers';
+import Inventory from './components/Account/Inventory/Inventory';
+import Profile from './components/Account/Profile/Profile';
 import SupportButton from './components/SupportButton/SupportButton';
 
 const DashboardLayout = () => {
@@ -30,6 +31,8 @@ const DashboardLayout = () => {
         return <ManageUsers />;
       case 'inventory':
         return <Inventory />;
+      case 'profile':
+        return <Profile />;
       default:
         return <ActiveJobs />;
     }

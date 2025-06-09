@@ -40,7 +40,9 @@ const AccountDropdown = ({ onNavigate }) => {
   };
 
   const handleProfile = () => {
-    console.log('Profile');
+    if (onNavigate) {
+      onNavigate('profile');
+    }
     setIsOpen(false);
   };
 
@@ -52,7 +54,7 @@ const AccountDropdown = ({ onNavigate }) => {
 
   return (
     <div className="account-dropdown" ref={dropdownRef}>
-      <button 
+      <button
         className="user-btn"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -61,37 +63,37 @@ const AccountDropdown = ({ onNavigate }) => {
         </div>
         <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
       </button>
-      
+
       {isOpen && (
         <div className="account-dropdown-menu">
           <div className="company-section">
             <div className="company-name">ABCOMPANY</div>
           </div>
-          
+
           <div className="dropdown-divider"></div>
-          
+
           <button className="account-dropdown-item" onClick={handleAccount}>
             <span className="item-icon">⚙️</span>
             <span className="item-text">Account</span>
           </button>
-          
+
           <button className="account-dropdown-item" onClick={handleManageUsers}>
             <span className="item-icon">👥</span>
             <span className="item-text">Manage users</span>
           </button>
-          
+
           <button className="account-dropdown-item" onClick={handleInventory}>
             <span className="item-icon">📦</span>
             <span className="item-text">Inventory</span>
           </button>
-          
+
           <div className="dropdown-divider"></div>
-          
+
           <button className="account-dropdown-item" onClick={handleProfile}>
             <span className="item-icon">👤</span>
             <span className="item-text">Profile</span>
           </button>
-          
+
           <button className="account-dropdown-item logout" onClick={handleLogout}>
             <span className="item-icon">🚪</span>
             <span className="item-text">Logout</span>
