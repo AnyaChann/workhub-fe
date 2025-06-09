@@ -11,14 +11,12 @@ const Header = () => {
             <Link to="/" className="logo-text">WorkHub®</Link>
           </div>
           <nav className="nav">
-            <Link to="#" className="nav-link">
-              Find jobs
-              <span className="external-icon">↗</span>
-            </Link>
-            <Link to="#" className="nav-link">Pricing</Link>
+            <a href="/find-jobs" className="nav-link">Find Jobs</a>
+            <Link to="/pricing" className="nav-link">Pricing</Link>
             <Link to="/login" className="nav-link">Login</Link>
+
             <div className="header-actions">
-              <button className="btn-post-job">Post a job</button>
+              <Link to="/register" className="btn-post-job">POST A JOB</Link>
             </div>
           </nav>
         </div>
