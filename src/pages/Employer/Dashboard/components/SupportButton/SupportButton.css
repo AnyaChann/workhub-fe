@@ -1,0 +1,39 @@
+.support-floating {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+}
+
+.support-btn {
+  background-color: #00d4aa;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+}
+
+.support-btn:hover {
+  background-color: #00c49a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 212, 170, 0.4);
+}
+
+.support-icon {
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .support-floating {
+    bottom: 1rem;
+    right: 1rem;
+  }
+}

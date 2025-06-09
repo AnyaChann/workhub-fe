@@ -1,0 +1,83 @@
+.dashboard-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 0 2rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00d4aa;
+  letter-spacing: -0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.help-dropdown,
+.user-dropdown {
+  position: relative;
+}
+
+.help-btn,
+.user-btn {
+  background: none;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.help-btn:hover,
+.user-btn:hover {
+  border-color: #00d4aa;
+  background-color: #f8fffe;
+}
+
+.help-icon {
+  font-size: 1rem;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  background-color: #e5e5e5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 0 1rem;
+  }
+}
