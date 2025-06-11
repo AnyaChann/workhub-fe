@@ -50,7 +50,7 @@ const CompaniesSection = () => {
   return (
     <section className="companies-section">
       <div>
-        <h2 className="companies-title">Companies currently hiring on CareerOne</h2>
+        <h2 className="companies-title">Companies currently hiring on WorkHub®</h2>
 
         <div className="companies-carousel">
           {/* Top row - slides left */}

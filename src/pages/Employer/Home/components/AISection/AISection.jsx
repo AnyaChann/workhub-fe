@@ -46,7 +46,7 @@ const features = [
   {
     icon: icons.alert,
     title: 'Job alerts & notifications',
-    desc: 'Our system works hard around the clock to keep candidates informed of new opportunities. Your job is promoted to the right candidates on and off CareerOne.',
+    desc: 'Our system works hard around the clock to keep candidates informed of new opportunities. Your job is promoted to the right candidates on and off WorkHub®.',
   },
   {
     icon: icons.branding,
