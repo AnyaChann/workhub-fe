@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import './DashboardLayout.css';
 import DashboardHeader from './components/DashboardHeader/DashboardHeader';
 import DashboardSidebar from './components/DashboardSidebar/DashboardSidebar';
@@ -16,6 +17,20 @@ import SupportButton from './components/SupportButton/SupportButton';
 const DashboardLayout = () => {
   const [selectedTab, setSelectedTab] = useState('active-jobs');
   const [showCreateJob, setShowCreateJob] = useState(false);
+  const location = useLocation();
+
+  // Handle initial tab based on URL hash or query params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const tabParam = urlParams.get('tab');
+    const hashTab = location.hash.replace('#', '');
+    
+    if (tabParam) {
+      setSelectedTab(tabParam);
+    } else if (hashTab) {
+      setSelectedTab(hashTab);
+    }
+  }, [location]);
 
   const handleCreateJob = () => {
     setShowCreateJob(true);
@@ -38,6 +53,17 @@ const DashboardLayout = () => {
     }
   };
 
+  const handleTabChange = (newTab) => {
+    setSelectedTab(newTab);
+    
+    // Update URL without full page reload
+    const url = new URL(window.location);
+    url.searchParams.set('tab', newTab);
+    window.history.pushState({}, '', url);
+    
+    console.log(`✅ Tab changed to: ${newTab}`);
+  };
+
   const renderMainContent = () => {
     if (showCreateJob) {
       return (
@@ -47,6 +73,8 @@ const DashboardLayout = () => {
         />
       );
     }
+
+    console.log(`🔄 Rendering content for tab: ${selectedTab}`);
 
     switch(selectedTab) {
       case 'active-jobs':
@@ -66,6 +94,7 @@ const DashboardLayout = () => {
       case 'profile':
         return <Profile />;
       default:
+        console.log(`⚠️ Unknown tab: ${selectedTab}, showing active-jobs`);
         return <ActiveJobs onCreateJob={handleCreateJob} />;
     }
   };
@@ -73,23 +102,42 @@ const DashboardLayout = () => {
   return (
     <div className="dashboard">
       <DashboardHeader 
-        onNavigate={setSelectedTab}
+        onNavigate={handleTabChange}
         onCreateJob={handleCreateJob}
+        currentTab={selectedTab}
       />
       
       <div className="dashboard-content">
         {!showCreateJob && (
           <DashboardSidebar 
             selectedTab={selectedTab} 
-            onTabChange={setSelectedTab} 
+            onTabChange={handleTabChange} 
           />
         )}
         
-        {renderMainContent()}
+        {/* <div className="main-content-area">
+           Debug info - remove in production 
+          <div style={{
+            position: 'fixed',
+            bottom: '10px',
+            left: '10px',
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '10px',
+            zIndex: 9999,
+            display: process.env.NODE_ENV === 'development' ? 'block' : 'none'
+          }}>
+            Current Tab: {selectedTab}
+          </div> */}
+          
+          {renderMainContent()}
+        </div>
       </div>
 
-      {!showCreateJob && <SupportButton />}
-    </div>
+    //   {!showCreateJob && <SupportButton />}
+    // </div>
   );
 };
 

@@ -19,7 +19,7 @@ const NotFound = () => {
           </p>
           
           <div className="error-actions">
-            <Link to="/" className="btn-primary">
+            <Link to="/home" className="btn-primary">
               Go to Homepage
             </Link>
             <button 
@@ -46,7 +46,7 @@ const NotFound = () => {
           </div>
         </div>
         
-        <div className="not-found-illustration">
+        {/* <div className="not-found-illustration">
           <div className="illustration-404">
             <div className="circle circle-1"></div>
             <div className="circle circle-2"></div>
@@ -55,7 +55,7 @@ const NotFound = () => {
             <div className="number-0">0</div>
             <div className="number-4-right">4</div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="support-button">

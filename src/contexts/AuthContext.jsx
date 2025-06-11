@@ -14,6 +14,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -23,18 +24,39 @@ export const AuthProvider = ({ children }) => {
         
         if (token && userData) {
           try {
-            const currentUser = await authService.getCurrentUser();
-            setUser(currentUser);
+            // Try to parse stored user data
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+            
+            console.log('🔐 Restored user session:', {
+              id: parsedUser.id,
+              email: parsedUser.email,
+              role: parsedUser.role
+            });
+            
+            // Optionally validate with server
+            try {
+              const currentUser = await authService.getCurrentUser();
+              if (currentUser && currentUser.id) {
+                setUser(currentUser);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+              }
+            } catch (error) {
+              // If server validation fails, keep local user data
+              console.log('Server validation failed, using cached user data');
+            }
           } catch (error) {
+            // If parsing fails, clear invalid data
+            console.error('Invalid stored user data, clearing session');
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
-            console.error('Token validation failed:', error);
           }
         }
       } catch (error) {
         console.error('Auth initialization failed:', error);
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
 
@@ -47,6 +69,8 @@ export const AuthProvider = ({ children }) => {
       
       localStorage.setItem('user', JSON.stringify(response.user));
       setUser(response.user);
+      
+      console.log('✅ User logged in successfully:', response.user);
       
       return response;
     } catch (error) {
@@ -64,6 +88,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
+      console.log('🔐 User logged out');
     }
   };
 
@@ -96,6 +121,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     loading,
+    initialized,
     isAuthenticated: !!user,
     userRole: user?.role?.toLowerCase() || null,
     

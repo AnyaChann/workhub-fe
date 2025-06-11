@@ -1,9 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../../../contexts/AuthContext';
 import './AccountDropdown.css';
 
 const AccountDropdown = ({ onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  
+  const { 
+    user, 
+    logout, 
+    fullname, 
+    email, 
+    getUserAvatar, 
+    userRole 
+  } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -19,84 +32,146 @@ const AccountDropdown = ({ onNavigate }) => {
   }, []);
 
   const handleAccount = () => {
+    console.log('Navigate to Account Settings');
     if (onNavigate) {
-      onNavigate('account');
+      onNavigate('account'); // This will change the tab in DashboardLayout
     }
     setIsOpen(false);
+    // Don't use navigate - use onNavigate callback to change tab
   };
 
   const handleManageUsers = () => {
+    console.log('Navigate to Manage Users');
     if (onNavigate) {
-      onNavigate('manage-users');
+      onNavigate('manage-users'); // This will change the tab in DashboardLayout
     }
     setIsOpen(false);
   };
 
   const handleInventory = () => {
+    console.log('Navigate to Inventory/Packages');
     if (onNavigate) {
-      onNavigate('inventory');
+      onNavigate('inventory'); // This will change the tab in DashboardLayout
     }
     setIsOpen(false);
   };
 
   const handleProfile = () => {
+    console.log('Navigate to Company Profile');
     if (onNavigate) {
-      onNavigate('profile');
+      onNavigate('profile'); // This will change the tab in DashboardLayout
     }
     setIsOpen(false);
   };
 
-  const handleLogout = () => {
-    console.log('Logout');
+  const handleLogout = async () => {
+    console.log('Logging out...');
+    setIsLoading(true);
     setIsOpen(false);
-    // TODO: Implement logout logic
+    
+    try {
+      await logout();
+      // Navigate to home page after logout
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still navigate to home even if logout API fails
+      navigate('/', { replace: true });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Get user avatar or fallback
+  const userAvatar = getUserAvatar();
+  const displayName = fullname || email || 'User';
+  const companyName = user?.companyName || user?.company?.name || 'WORKHUB COMPANY';
 
   return (
     <div className="account-dropdown" ref={dropdownRef}>
       <button
         className="user-btn"
         onClick={() => setIsOpen(!isOpen)}
+        disabled={isLoading}
+        title={`${displayName} (${userRole?.toUpperCase()})`}
       >
         <div className="user-avatar">
-          <span>👤</span>
+          {userAvatar ? (
+            <img 
+              src={userAvatar} 
+              alt={displayName}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+          ) : null}
+          <span 
+            style={{ 
+              display: userAvatar ? 'none' : 'block',
+              fontSize: '1.2rem'
+            }}
+          >
+            👤
+          </span>
         </div>
-        <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+        <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>
+          {isLoading ? '⏳' : '▼'}
+        </span>
       </button>
 
       {isOpen && (
         <div className="account-dropdown-menu">
           <div className="company-section">
-            <div className="company-name">ABCOMPANY</div>
+            <div className="user-info">
+              <div className="user-name">{displayName}</div>
+              <div className="user-email">{email}</div>
+            </div>
+            <div className="company-name">{companyName.toUpperCase()}</div>
+            <div className="user-role">{userRole?.toUpperCase()}</div>
           </div>
 
           <div className="dropdown-divider"></div>
 
           <button className="account-dropdown-item" onClick={handleAccount}>
             <span className="item-icon">⚙️</span>
-            <span className="item-text">Account</span>
+            <span className="item-text">Account Settings</span>
+            <span className="item-shortcut">Company</span>
           </button>
 
           <button className="account-dropdown-item" onClick={handleManageUsers}>
             <span className="item-icon">👥</span>
-            <span className="item-text">Manage users</span>
+            <span className="item-text">Manage Users</span>
+            <span className="item-shortcut">Team</span>
           </button>
 
           <button className="account-dropdown-item" onClick={handleInventory}>
             <span className="item-icon">📦</span>
-            <span className="item-text">Inventory</span>
+            <span className="item-text">Packages & Billing</span>
+            <span className="item-shortcut">Billing</span>
           </button>
 
           <div className="dropdown-divider"></div>
 
           <button className="account-dropdown-item" onClick={handleProfile}>
-            <span className="item-icon">👤</span>
-            <span className="item-text">Profile</span>
+            <span className="item-icon">🏢</span>
+            <span className="item-text">User Profile</span>
+            <span className="item-shortcut">Profile</span>
           </button>
 
-          <button className="account-dropdown-item logout" onClick={handleLogout}>
-            <span className="item-icon">🚪</span>
-            <span className="item-text">Logout</span>
+          <button 
+            className="account-dropdown-item logout" 
+            onClick={handleLogout}
+            disabled={isLoading}
+          >
+            <span className="item-icon">{isLoading ? '⏳' : '🚪'}</span>
+            <span className="item-text">{isLoading ? 'Logging out...' : 'Logout'}</span>
           </button>
         </div>
       )}

@@ -1,40 +1,44 @@
 .account-dropdown {
   position: relative;
+  display: inline-block;
 }
 
 .user-btn {
-  background: none;
-  border: none;
-  /* border-radius: 8px; */
-  padding: 8px 12px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 12px;
   cursor: pointer;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
-  color: #666;
 }
 
 .user-btn:hover {
-  border-color: #00d4aa;
-  background-color: #f8fffe;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.user-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .user-avatar {
-  width: 24px;
-  height: 24px;
-  background-color: #e5e5e5;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  background-color: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  overflow: hidden;
+  position: relative;
 }
 
 .dropdown-arrow {
-  font-size: 0.7rem;
-  color: #999;
+  font-size: 12px;
+  color: #666;
   transition: transform 0.2s ease;
 }
 
@@ -47,50 +51,94 @@
   top: 100%;
   right: 0;
   background: white;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
   z-index: 1000;
-  min-width: 180px;
-  margin-top: 4px;
-  padding: 8px 0;
+  overflow: hidden;
+  animation: dropdownSlideIn 0.2s ease;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .company-section {
-  padding: 12px 16px 8px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.user-info {
+  margin-bottom: 8px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
 }
 
 .company-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #00d4aa;
-  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 13px;
+  color: #007bff;
+  margin-bottom: 4px;
   letter-spacing: 0.5px;
+}
+
+.user-role {
+  font-size: 11px;
+  color: #28a745;
+  font-weight: 500;
+  background: rgba(40, 167, 69, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .dropdown-divider {
   height: 1px;
-  background-color: #e5e5e5;
-  margin: 8px 0;
+  background-color: #e0e0e0;
+  margin: 0;
 }
 
 .account-dropdown-item {
   width: 100%;
+  padding: 12px 16px;
   background: none;
   border: none;
-  padding: 12px 16px;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 0.9rem;
-  color: #333;
+  transition: background-color 0.2s ease;
+  position: relative;
 }
 
 .account-dropdown-item:hover {
   background-color: #f8f9fa;
+}
+
+.account-dropdown-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .account-dropdown-item.logout {
@@ -98,28 +146,89 @@
 }
 
 .account-dropdown-item.logout:hover {
-  background-color: #fff5f5;
+  background-color: #ffeaea;
 }
 
 .item-icon {
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  opacity: 0.7;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .item-text {
   flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.item-shortcut {
+  font-size: 11px;
+  color: #999;
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 3px;
   font-weight: 400;
 }
 
+.logout .item-shortcut {
+  display: none;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .account-dropdown-menu {
-    right: auto;
-    left: 0;
-    min-width: 160px;
+    min-width: 260px;
+    right: -10px;
+  }
+  
+  .company-section {
+    padding: 12px;
+  }
+  
+  .account-dropdown-item {
+    padding: 10px 12px;
+  }
+  
+  .item-shortcut {
+    display: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .account-dropdown-menu {
+    background: #a9a9a9;
+    border-color: #f9f9f9;
+  }
+  
+  .company-section {
+    background-color: #e6e6e6;
+    border-bottom-color: #808080;
+  }
+  
+  .user-name {
+    color: #e2e8f0;
+  }
+  
+  .user-email {
+    color: #a0aec0;
+  }
+  
+  .dropdown-divider {
+    background-color: #4a5568;
+  }
+  
+  .account-dropdown-item {
+    color: #e2e8f0;
+  }
+  
+  .account-dropdown-item:hover {
+    background-color: #4a5568;
+  }
+  
+  .item-shortcut {
+    background: #4a5568;
+    color: #a0aec0;
   }
 }

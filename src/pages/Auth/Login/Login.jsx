@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import ROUTES from '../../../routes/routeConstants';
@@ -8,7 +8,7 @@ import './Login.css';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, isAuthenticated, userRole, loading, initialized, getDashboardUrl } = useAuth();
   
   const [formData, setFormData] = useState({
     email: 'employer@test.com',
@@ -22,6 +22,104 @@ const Login = () => {
   const [loginSuccess, setLoginSuccess] = useState(false);
 
   const from = location.state?.from || null;
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (initialized && !loading && isAuthenticated && userRole) {
+      console.log('🔄 User already authenticated, redirecting to dashboard');
+      navigate(getDashboardUrl(), { replace: true });
+    }
+  }, [initialized, loading, isAuthenticated, userRole, navigate, getDashboardUrl]);
+
+  // Show loading if auth is still being checked
+  if (!initialized || loading) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(255, 255, 255, 0.95)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999
+      }}>
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '3px solid #007bff',
+          borderTop: '3px solid transparent',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '1rem'
+        }}></div>
+        <p style={{ color: '#666', fontSize: '0.9rem' }}>
+          Checking authentication...
+        </p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // If user is already authenticated, show redirect message
+  if (isAuthenticated) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(255, 255, 255, 0.95)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '2rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          textAlign: 'center',
+          maxWidth: '400px'
+        }}>
+          <h2 style={{ color: '#28a745', marginBottom: '1rem' }}>
+            ✅ Already Logged In
+          </h2>
+          <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+            You are already authenticated as <strong>{userRole?.toUpperCase()}</strong>
+          </p>
+          <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            Redirecting to your dashboard...
+          </p>
+          <button 
+            onClick={() => navigate(getDashboardUrl())}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const validateField = (name, value) => {
     let error = '';
@@ -258,7 +356,7 @@ const Login = () => {
                   cursor: 'pointer'
                 }}
               >
-                📊 Employer → Real Dashboard
+                📊 Employer → Dashboard
               </button>
               <button 
                 type="button" 
@@ -273,7 +371,7 @@ const Login = () => {
                   cursor: 'pointer'
                 }}
               >
-                📊 Candidate
+                📊 Candidate → Dashboard
               </button>
               <button 
                 type="button" 
@@ -288,11 +386,11 @@ const Login = () => {
                   cursor: 'pointer'
                 }}
               >
-                📊 Admin
+                📊 Admin → Dashboard
               </button>
             </div>
           </div>
-
+              
           {/* Mock Credentials */}
           <div className="test-credentials" style={{
             background: '#d1ecf1',
@@ -317,7 +415,7 @@ const Login = () => {
                   cursor: 'pointer'
                 }}
               >
-                🔧 Mock Employer → Real Dashboard
+                🔧 Employer → Full Dashboard
               </button>
               <button 
                 type="button" 
@@ -325,14 +423,14 @@ const Login = () => {
                 style={{ 
                   padding: '2px 8px', 
                   fontSize: '0.75rem',
-                  background: '#17a2b8',
+                  background: '#28a745',
                   color: 'white',
                   border: 'none',
                   borderRadius: '3px',
                   cursor: 'pointer'
                 }}
               >
-                🔧 Mock Candidate
+                🎯 Candidate → Temp + Logout
               </button>
               <button 
                 type="button" 
@@ -340,14 +438,14 @@ const Login = () => {
                 style={{ 
                   padding: '2px 8px', 
                   fontSize: '0.75rem',
-                  background: '#17a2b8',
+                  background: '#dc3545',
                   color: 'white',
                   border: 'none',
                   borderRadius: '3px',
                   cursor: 'pointer'
                 }}
               >
-                🔧 Mock Admin
+                ⚙️ Admin → Temp + Logout
               </button>
             </div>
           </div>
