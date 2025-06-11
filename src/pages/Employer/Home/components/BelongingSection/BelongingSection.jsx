@@ -1,5 +1,6 @@
 import React from 'react';
 import './BelongingSection.css';
+import belonging from '../../../../../assets/images/belonging.jpg';
 
 const BelongingSection = () => {
   return (
@@ -18,7 +19,7 @@ const BelongingSection = () => {
             </p>
           </div>
           <div className="belonging-image">
-            <img src="/api/placeholder/500/400" alt="Workplace belonging" />
+            <img src={belonging} alt="Workplace belonging" />
           </div>
         </div>
       </div>

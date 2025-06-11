@@ -1,6 +1,12 @@
 import React from 'react';
 import './HeroSection.css';
 
+// Import images from assets
+import candidate1 from '../../../../../assets/images/candidate1.jpg';
+import candidate2 from '../../../../../assets/images/candidate2.jpg';
+import candidate3 from '../../../../../assets/images/candidate3.jpg';
+import candidate4 from '../../../../../assets/images/candidate4.jpg';
+
 const HeroSection = () => {
   return (
     <section className="hero-section">
@@ -20,17 +26,17 @@ const HeroSection = () => {
             </div>
           </div>
           <div className="hero-images">
-            <div className="hero-image hero-image-1">
-              <img src="/api/placeholder/200/250" alt="Candidate 1" />
+            <div className="hero-image hero-image-1" style={{ height: '91%' }}>
+              <img src={candidate1} alt="Candidate 1" />
             </div>
-            <div className="hero-image hero-image-2">
-              <img src="/api/placeholder/200/250" alt="Candidate 2" />
+            <div className="hero-image hero-image-2" style={{ height: '91%' }}>
+              <img src={candidate2} alt="Candidate 2" />
             </div>
             <div className="hero-image hero-image-3">
-              <img src="/api/placeholder/200/250" alt="Candidate 3" />
+              <img src={candidate3} alt="Candidate 3" />
             </div>
             <div className="hero-image hero-image-4">
-              <img src="/api/placeholder/200/250" alt="Candidate 4" />
+              <img src={candidate4} alt="Candidate 4" />
             </div>
           </div>
         </div>

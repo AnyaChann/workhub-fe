@@ -1,6 +1,10 @@
 import React from 'react';
 import './FeaturesSection.css';
 
+// Import images from assets
+import dashboardImg from '../../../../../assets/images/feature-dashboard.jpg';
+import huntersImg from '../../../../../assets/images/feature-hunters.jpg';
+
 const FeaturesSection = () => {
   return (
     <section className="features-section">
@@ -11,11 +15,11 @@ const FeaturesSection = () => {
               Start hiring even before your first application arrives
             </h2>
             <p className="feature-description">
-              The moment you job is live, we'll show you quality candidates that match your job based on skills, experience, and more.
+              The moment your job is live, we'll show you quality candidates that match your job based on skills, experience, and more.
             </p>
           </div>
           <div className="feature-image">
-            <img src="/api/placeholder/400/300" alt="Hiring dashboard" />
+            <img src={dashboardImg} alt="Hiring dashboard" />
           </div>
         </div>
 
@@ -29,7 +33,7 @@ const FeaturesSection = () => {
             </p>
           </div>
           <div className="feature-image">
-            <img src="/api/placeholder/400/300" alt="Job hunters" />
+            <img src={huntersImg} alt="Job hunters" />
           </div>
         </div>
       </div>

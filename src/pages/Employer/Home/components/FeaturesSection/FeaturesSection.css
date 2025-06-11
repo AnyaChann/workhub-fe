@@ -40,7 +40,9 @@
 .feature-image {
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 20px 30px rgba(0, 0, 0, 0.10),
+    16px 15px 0px -4px #C7EDF3;
 }
 
 .feature-image img {
