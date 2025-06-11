@@ -6,66 +6,93 @@ import ProtectedRoute from './ProtectedRoute';
 // Public pages
 import Home from '../pages/Employer/Home/Home';
 import Pricing from '../pages/Employer/Pricing/Pricing';
-// import About from '../pages/Public/About/About';
-// import Contact from '../pages/Public/Contact/Contact';
-// import Terms from '../pages/Public/Terms/Terms';
-// import Privacy from '../pages/Public/Privacy/Privacy';
 
 // Auth pages
 import Login from '../pages/Auth/Login/Login';
-// import Register from '../pages/Auth/Register/Register';
-// import ForgotPassword from '../pages/Auth/ForgotPassword/ForgotPassword';
-// import ResetPassword from '../pages/Auth/ResetPassword/ResetPassword';
+import Register from '../pages/Auth/Register/Register';
+import ForgotPassword from '../pages/Auth/ForgotPassword/ForgotPassword';
 
 // Error pages
 import NotFound from '../pages/NotFound/NotFound';
-// import Unauthorized from '../pages/Error/Unauthorized/Unauthorized';
-// import ServerError from '../pages/Error/ServerError/ServerError';
 
-// Employer pages - Tạm thời comment out các trang chưa tồn tại
-// import EmployerLayout from '../pages/Employer/Layout/EmployerLayout';
-// import EmployerDashboard from '../pages/Employer/Dashboard/Dashboard';
-// import EmployerJobs from '../pages/Employer/Jobs/Jobs';
-// import CreateJob from '../pages/Employer/Jobs/CreateJob';
-// import EditJob from '../pages/Employer/Jobs/EditJob';
-// import ViewJob from '../pages/Employer/Jobs/ViewJob';
-// import Applications from '../pages/Employer/Applications/Applications';
-// import ViewApplication from '../pages/Employer/Applications/ViewApplication';
-// import CompanyProfile from '../pages/Employer/Company/CompanyProfile';
-// import EditCompany from '../pages/Employer/Company/EditCompany';
-// import Packages from '../pages/Employer/Packages/Packages';
-// import Billing from '../pages/Employer/Billing/Billing';
-// import EmployerMessages from '../pages/Employer/Messages/Messages';
-// import EmployerSettings from '../pages/Employer/Settings/Settings';
+// Real Dashboard Components
+import DashboardLayout from '../pages/Employer/Dashboard/DashboardLayout';
 
-// Candidate pages - Tạm thời comment out các trang chưa tồn tại
-// import CandidateLayout from '../pages/Candidate/Layout/CandidateLayout';
-// import CandidateDashboard from '../pages/Candidate/Dashboard/Dashboard';
-// import CandidateJobs from '../pages/Candidate/Jobs/Jobs';
-// import CandidateViewJob from '../pages/Candidate/Jobs/ViewJob';
-// import CandidateApplications from '../pages/Candidate/Applications/Applications';
-// import SavedJobs from '../pages/Candidate/SavedJobs/SavedJobs';
-// import CandidateProfile from '../pages/Candidate/Profile/Profile';
-// import Resume from '../pages/Candidate/Resume/Resume';
-// import CreateResume from '../pages/Candidate/Resume/CreateResume';
-// import EditResume from '../pages/Candidate/Resume/EditResume';
-// import CandidateMessages from '../pages/Candidate/Messages/Messages';
-// import CandidateSettings from '../pages/Candidate/Settings/Settings';
+// Temporary Dashboard Components for other roles
+const TemporaryDashboard = ({ userType }) => (
+  <div style={{
+    padding: '2rem',
+    textAlign: 'center',
+    background: '#f8f9fa',
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }}>
+    <h1 style={{ color: '#28a745', marginBottom: '1rem' }}>
+      🎉 Login Successful!
+    </h1>
+    <h2 style={{ color: '#333', marginBottom: '2rem' }}>
+      Welcome to {userType} Dashboard
+    </h2>
+    <div style={{
+      background: 'white',
+      padding: '2rem',
+      borderRadius: '8px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      maxWidth: '600px'
+    }}>
+      <h3 style={{ color: '#666', marginBottom: '1rem' }}>
+        Dashboard Features Coming Soon:
+      </h3>
+      <ul style={{
+        textAlign: 'left',
+        color: '#666',
+        lineHeight: '1.8'
+      }}>
+        {userType === 'Candidate' && (
+          <>
+            <li>🎯 Personalized Job Recommendations</li>
+            <li>📄 Resume Builder & Management</li>
+            <li>📋 Application Tracking</li>
+            <li>⭐ Saved Jobs & Favorites</li>
+            <li>👤 Profile Management</li>
+            <li>💬 Employer Communications</li>
+          </>
+        )}
+        {userType === 'Admin' && (
+          <>
+            <li>👥 User Management</li>
+            <li>🏢 Company Management</li>
+            <li>💼 Job Oversight</li>
+            <li>📊 System Analytics</li>
+            <li>📦 Package Management</li>
+            <li>⚙️ System Settings</li>
+          </>
+        )}
+      </ul>
+    </div>
+    <button 
+      onClick={() => window.location.href = '/'}
+      style={{
+        marginTop: '2rem',
+        padding: '0.75rem 2rem',
+        background: '#007bff',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        fontSize: '1rem',
+        cursor: 'pointer'
+      }}
+    >
+      🏠 Back to Home
+    </button>
+  </div>
+);
 
-// Admin pages - Tạm thời comment out các trang chưa tồn tại
-// import AdminLayout from '../pages/Admin/Layout/AdminLayout';
-// import AdminDashboard from '../pages/Admin/Dashboard/Dashboard';
-// import AdminUsers from '../pages/Admin/Users/Users';
-// import AdminEmployers from '../pages/Admin/Employers/Employers';
-// import AdminCandidates from '../pages/Admin/Candidates/Candidates';
-// import AdminJobs from '../pages/Admin/Jobs/Jobs';
-// import AdminPackages from '../pages/Admin/Packages/Packages';
-// import CreatePackage from '../pages/Admin/Packages/CreatePackage';
-// import EditPackage from '../pages/Admin/Packages/EditPackage';
-// import AdminCategories from '../pages/Admin/Categories/Categories';
-// import AdminSkills from '../pages/Admin/Skills/Skills';
-// import AdminReports from '../pages/Admin/Reports/Reports';
-// import AdminSettings from '../pages/Admin/Settings/Settings';
+const CandidateDashboard = () => <TemporaryDashboard userType="Candidate" />;
+const AdminDashboard = () => <TemporaryDashboard userType="Admin" />;
 
 const AppRoutes = () => {
   return (
@@ -74,96 +101,62 @@ const AppRoutes = () => {
       <Route path={ROUTES.HOME} element={<Home />} />
       <Route path="/home" element={<Home />} />
       <Route path={ROUTES.PRICING} element={<Pricing />} />
-      
-      {/* Tạm thời comment out các trang chưa tồn tại */}
-      {/* <Route path={ROUTES.ABOUT} element={<About />} />
-      <Route path={ROUTES.CONTACT} element={<Contact />} />
-      <Route path={ROUTES.TERMS} element={<Terms />} />
-      <Route path={ROUTES.PRIVACY} element={<Privacy />} /> */}
 
       {/* Auth routes */}
       <Route path={ROUTES.LOGIN} element={<Login />} />
-      
-      {/* Tạm thời comment out các trang auth chưa tồn tại */}
-      {/* <Route path={ROUTES.REGISTER} element={<Register />} />
+      <Route path={ROUTES.REGISTER} element={<Register />} />
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} /> */}
 
-      {/* Employer protected routes - Tạm thời comment out */}
-      {/* <Route 
-        path={ROUTES.EMPLOYER.HOME} 
+      {/* Employer protected routes - Using real DashboardLayout */}
+      <Route 
+        path={ROUTES.EMPLOYER.DASHBOARD} 
         element={
           <ProtectedRoute allowedRoles={['employer']}>
-            <EmployerLayout />
+            <DashboardLayout />
           </ProtectedRoute>
-        }
-      >
-        <Route index element={<EmployerDashboard />} />
-        <Route path="dashboard" element={<EmployerDashboard />} />
-        <Route path="jobs" element={<EmployerJobs />} />
-        <Route path="jobs/create" element={<CreateJob />} />
-        <Route path="jobs/:id/edit" element={<EditJob />} />
-        <Route path="jobs/:id" element={<ViewJob />} />
-        <Route path="applications" element={<Applications />} />
-        <Route path="applications/:id" element={<ViewApplication />} />
-        <Route path="company" element={<CompanyProfile />} />
-        <Route path="company/edit" element={<EditCompany />} />
-        <Route path="packages" element={<Packages />} />
-        <Route path="billing" element={<Billing />} />
-        <Route path="messages" element={<EmployerMessages />} />
-        <Route path="settings" element={<EmployerSettings />} />
-      </Route> */}
+        } 
+      />
 
-      {/* Candidate protected routes - Tạm thời comment out */}
-      {/* <Route 
-        path={ROUTES.CANDIDATE.HOME} 
+      {/* Alternative employer routes */}
+      <Route 
+        path="/employer" 
+        element={
+          <ProtectedRoute allowedRoles={['employer']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employer/home" 
+        element={
+          <ProtectedRoute allowedRoles={['employer']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Candidate protected routes */}
+      <Route 
+        path={ROUTES.CANDIDATE.DASHBOARD} 
         element={
           <ProtectedRoute allowedRoles={['candidate']}>
-            <CandidateLayout />
+            <CandidateDashboard />
           </ProtectedRoute>
-        }
-      >
-        <Route index element={<CandidateDashboard />} />
-        <Route path="dashboard" element={<CandidateDashboard />} />
-        <Route path="jobs" element={<CandidateJobs />} />
-        <Route path="jobs/:id" element={<CandidateViewJob />} />
-        <Route path="applications" element={<CandidateApplications />} />
-        <Route path="saved-jobs" element={<SavedJobs />} />
-        <Route path="profile" element={<CandidateProfile />} />
-        <Route path="resume" element={<Resume />} />
-        <Route path="resume/create" element={<CreateResume />} />
-        <Route path="resume/:id/edit" element={<EditResume />} />
-        <Route path="messages" element={<CandidateMessages />} />
-        <Route path="settings" element={<CandidateSettings />} />
-      </Route> */}
+        } 
+      />
 
-      {/* Admin protected routes - Tạm thời comment out */}
-      {/* <Route 
-        path={ROUTES.ADMIN.HOME} 
+      {/* Admin protected routes */}
+      <Route 
+        path={ROUTES.ADMIN.DASHBOARD} 
         element={
           <ProtectedRoute allowedRoles={['admin']}>
-            <AdminLayout />
+            <AdminDashboard />
           </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="employers" element={<AdminEmployers />} />
-        <Route path="candidates" element={<AdminCandidates />} />
-        <Route path="jobs" element={<AdminJobs />} />
-        <Route path="packages" element={<AdminPackages />} />
-        <Route path="packages/create" element={<CreatePackage />} />
-        <Route path="packages/:id/edit" element={<EditPackage />} />
-        <Route path="categories" element={<AdminCategories />} />
-        <Route path="skills" element={<AdminSkills />} />
-        <Route path="reports" element={<AdminReports />} />
-        <Route path="settings" element={<AdminSettings />} />
-      </Route> */}
+        } 
+      />
 
       {/* Error routes */}
-      {/* <Route path={ROUTES.UNAUTHORIZED} element={<Unauthorized />} />
-      <Route path={ROUTES.SERVER_ERROR} element={<ServerError />} /> */}
       <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
       
       {/* 404 route - Must be last */}

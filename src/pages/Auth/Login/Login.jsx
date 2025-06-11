@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import ROUTES from '../../../routes/routeConstants';
+import ApiTest from '../../../components/ApiTest/ApiTest';
 import './Login.css';
 
 const Login = () => {
@@ -10,15 +11,16 @@ const Login = () => {
   const { login } = useAuth();
   
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: 'employer@test.com',
+    password: 'password'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showApiTest, setShowApiTest] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
-  // Get return URL from location state
   const from = location.state?.from || null;
 
   const validateField = (name, value) => {
@@ -53,7 +55,6 @@ const Login = () => {
       [name]: value
     }));
 
-    // Clear errors when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -61,7 +62,6 @@ const Login = () => {
       }));
     }
     
-    // Clear general error too
     if (errors.general) {
       setErrors(prev => ({
         ...prev,
@@ -87,7 +87,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all fields
     const newErrors = {};
     Object.keys(formData).forEach(key => {
       const error = validateField(key, formData[key]);
@@ -104,43 +103,54 @@ const Login = () => {
       setIsLoading(true);
       
       try {
-        console.log('Attempting login with:', { email: formData.email, password: '***' });
+        console.log('🚀 Attempting login with:', { 
+          email: formData.email, 
+          password: '***'
+        });
         
         const response = await login({
           email: formData.email.trim(),
           password: formData.password
         });
 
-        console.log('Login successful:', response);
+        console.log('✅ Login successful:', response);
+        setLoginSuccess(true);
 
-        // Navigate based on return URL or user role
-        if (from) {
-          navigate(from, { replace: true });
-        } else {
-          const userRole = response.user?.role?.toLowerCase();
-          
-          switch (userRole) {
-            case 'employer':
-              navigate(ROUTES.EMPLOYER.DASHBOARD);
-              break;
-            case 'candidate':
-              navigate(ROUTES.CANDIDATE.DASHBOARD);
-              break;
-            case 'admin':
-              navigate(ROUTES.ADMIN.DASHBOARD);
-              break;
-            default:
-              navigate(ROUTES.HOME);
+        // Show success message with user info
+        const isMock = response.message && response.message.includes('Mock');
+        setErrors({ 
+          success: `✅ Welcome ${response.user?.fullname}! ${isMock ? '(Mock data)' : '(Database user)'}` 
+        });
+
+        // Navigate after showing success message
+        setTimeout(() => {
+          if (from) {
+            navigate(from, { replace: true });
+          } else {
+            const userRole = response.user?.role?.toLowerCase();
+            
+            switch (userRole) {
+              case 'employer':
+                navigate(ROUTES.EMPLOYER.DASHBOARD);
+                break;
+              case 'candidate':
+                navigate(ROUTES.CANDIDATE.DASHBOARD);
+                break;
+              case 'admin':
+                navigate(ROUTES.ADMIN.DASHBOARD);
+                break;
+              default:
+                navigate(ROUTES.HOME);
+            }
           }
-        }
+        }, 2000);
 
       } catch (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         
-        // Handle different error types
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 || error.message === 'Invalid email or password') {
           setErrors({ 
-            general: 'Invalid email or password. Please try again.' 
+            general: '❌ Invalid email or password. Try using mock credentials or run SQL script for database users.' 
           });
         } else if (error.response?.status === 400) {
           setErrors({ 
@@ -168,6 +178,52 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
+  const quickFillCredentials = (email, password) => {
+    setFormData({ email, password });
+    setErrors({});
+  };
+
+  // Loading overlay when navigating
+  if (loginSuccess && isLoading) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(255, 255, 255, 0.95)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999
+      }}>
+        <div style={{
+          width: '60px',
+          height: '60px',
+          border: '4px solid #007bff',
+          borderTop: '4px solid transparent',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '1rem'
+        }}></div>
+        <h2 style={{ color: '#333', marginBottom: '0.5rem' }}>
+          🎉 Login Successful!
+        </h2>
+        <p style={{ color: '#666' }}>
+          Redirecting to your dashboard...
+        </p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="login-page">
       <div className="login-container">
@@ -178,21 +234,162 @@ const Login = () => {
         <div className="login-form-container">
           <h1 className="login-title">Sign in</h1>
 
-          {/* Test credentials info */}
+          {/* Database User Info */}
           <div className="test-credentials" style={{
-            background: '#f8f9fa',
-            border: '1px solid #dee2e6',
+            background: '#fff3cd',
+            border: '1px solid #ffeaa7',
             borderRadius: '4px',
             padding: '12px',
             marginBottom: '1rem',
             fontSize: '0.85rem'
           }}>
-            <strong>Test Credentials:</strong><br />
-            <strong>Employer:</strong> employer@test.com / password<br />
-            <strong>Candidate:</strong> candidate@test.com / password<br />
-            <strong>Admin:</strong> admin@test.com / password
+            <strong>🗄️ Database Users (need SQL script):</strong><br />
+            <div style={{ display: 'flex', gap: '5px', marginTop: '5px', flexWrap: 'wrap' }}>
+              <button 
+                type="button" 
+                onClick={() => quickFillCredentials('employer@test.com', 'password')}
+                style={{ 
+                  padding: '2px 8px', 
+                  fontSize: '0.75rem',
+                  background: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                📊 Employer → Real Dashboard
+              </button>
+              <button 
+                type="button" 
+                onClick={() => quickFillCredentials('candidate@test.com', 'password')}
+                style={{ 
+                  padding: '2px 8px', 
+                  fontSize: '0.75rem',
+                  background: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                📊 Candidate
+              </button>
+              <button 
+                type="button" 
+                onClick={() => quickFillCredentials('admin@test.com', 'password')}
+                style={{ 
+                  padding: '2px 8px', 
+                  fontSize: '0.75rem',
+                  background: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                📊 Admin
+              </button>
+            </div>
           </div>
 
+          {/* Mock Credentials */}
+          <div className="test-credentials" style={{
+            background: '#d1ecf1',
+            border: '1px solid #bee5eb',
+            borderRadius: '4px',
+            padding: '12px',
+            marginBottom: '1rem',
+            fontSize: '0.85rem'
+          }}>
+            <strong>🔧 Mock Users (always work):</strong><br />
+            <div style={{ display: 'flex', gap: '5px', marginTop: '5px', flexWrap: 'wrap' }}>
+              <button 
+                type="button" 
+                onClick={() => quickFillCredentials('employer@test.com', 'password')}
+                style={{ 
+                  padding: '2px 8px', 
+                  fontSize: '0.75rem',
+                  background: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔧 Mock Employer → Real Dashboard
+              </button>
+              <button 
+                type="button" 
+                onClick={() => quickFillCredentials('candidate@test.com', 'password')}
+                style={{ 
+                  padding: '2px 8px', 
+                  fontSize: '0.75rem',
+                  background: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔧 Mock Candidate
+              </button>
+              <button 
+                type="button" 
+                onClick={() => quickFillCredentials('admin@test.com', 'password')}
+                style={{ 
+                  padding: '2px 8px', 
+                  fontSize: '0.75rem',
+                  background: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔧 Mock Admin
+              </button>
+            </div>
+          </div>
+
+          {/* Debug Toggle */}
+          <div style={{ marginBottom: '1rem' }}>
+            <button 
+              type="button"
+              onClick={() => setShowApiTest(!showApiTest)}
+              style={{
+                fontSize: '0.75rem',
+                padding: '4px 8px',
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '3px',
+                cursor: 'pointer'
+              }}
+            >
+              {showApiTest ? 'Hide' : 'Show'} 🔍 API Debug
+            </button>
+          </div>
+
+          {/* API Test Component */}
+          {showApiTest && <ApiTest />}
+
+          {/* Success Message */}
+          {errors.success && (
+            <div style={{
+              background: '#d4edda',
+              color: '#155724',
+              border: '1px solid #c3e6cb',
+              borderRadius: '4px',
+              padding: '12px',
+              marginBottom: '1rem',
+              fontSize: '0.9rem'
+            }}>
+              {errors.success}
+            </div>
+          )}
+
+          {/* Error Message */}
           {errors.general && (
             <div className="error-banner">
               {errors.general}

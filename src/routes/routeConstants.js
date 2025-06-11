@@ -28,7 +28,7 @@ const ROUTES = {
     PACKAGES: '/employer/packages',
     BILLING: '/employer/billing',
     MESSAGES: '/employer/messages',
-    SETTINGS: '/employer/settings',
+    SETTINGS: '/employer/settings'
   },
 
   // Candidate routes
@@ -44,7 +44,7 @@ const ROUTES = {
     CREATE_RESUME: '/candidate/resume/create',
     EDIT_RESUME: '/candidate/resume/:id/edit',
     MESSAGES: '/candidate/messages',
-    SETTINGS: '/candidate/settings',
+    SETTINGS: '/candidate/settings'
   },
 
   // Admin routes
@@ -61,13 +61,13 @@ const ROUTES = {
     CATEGORIES: '/admin/categories',
     SKILLS: '/admin/skills',
     REPORTS: '/admin/reports',
-    SETTINGS: '/admin/settings',
+    SETTINGS: '/admin/settings'
   },
 
   // Error routes
-  NOT_FOUND: '/404',
   UNAUTHORIZED: '/unauthorized',
-  SERVER_ERROR: '/500',
+  NOT_FOUND: '/404',
+  SERVER_ERROR: '/500'
 };
 
 export default ROUTES;

@@ -22,12 +22,10 @@ export const AuthProvider = ({ children }) => {
         const userData = localStorage.getItem('user');
         
         if (token && userData) {
-          // Verify token is still valid
           try {
             const currentUser = await authService.getCurrentUser();
             setUser(currentUser);
           } catch (error) {
-            // Token is invalid, clear storage
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
             console.error('Token validation failed:', error);
@@ -47,7 +45,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.login(credentials);
       
-      // Store user data
       localStorage.setItem('user', JSON.stringify(response.user));
       setUser(response.user);
       
@@ -64,10 +61,33 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Always clear state and storage
       setUser(null);
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
+    }
+  };
+
+  // Helper functions to access user properties safely
+  const getUserFullName = () => user?.fullname || 'User';
+  const getUserEmail = () => user?.email || '';
+  const getUserPhone = () => user?.phone || '';
+  const getUserAvatar = () => user?.avatar || '';
+  const getUserStatus = () => user?.status || 'UNKNOWN';
+  const getUserCreatedAt = () => user?.createdAt || null;
+  const getUserResumeList = () => user?.resumeList || [];
+
+  // Get dashboard URL based on user role
+  const getDashboardUrl = () => {
+    const role = user?.role?.toLowerCase();
+    switch (role) {
+      case 'employer':
+        return '/employer/dashboard';
+      case 'candidate':
+        return '/candidate/dashboard';
+      case 'admin':
+        return '/admin/dashboard';
+      default:
+        return '/';
     }
   };
 
@@ -77,7 +97,27 @@ export const AuthProvider = ({ children }) => {
     logout,
     loading,
     isAuthenticated: !!user,
-    userRole: user?.role?.toLowerCase() || null
+    userRole: user?.role?.toLowerCase() || null,
+    
+    // User info helpers
+    getUserFullName,
+    getUserEmail,
+    getUserPhone,
+    getUserAvatar,
+    getUserStatus,
+    getUserCreatedAt,
+    getUserResumeList,
+    getDashboardUrl,
+    
+    // Direct access to user properties (with fallbacks)
+    userId: user?.id || null,
+    fullname: user?.fullname || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    avatar: user?.avatar || '',
+    status: user?.status || 'UNKNOWN',
+    createdAt: user?.createdAt || null,
+    resumeList: user?.resumeList || []
   };
 
   return (
