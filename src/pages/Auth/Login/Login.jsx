@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
+import ROUTES from '../../../routes/routeConstants';
 import './Login.css';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -10,6 +16,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Get return URL from location state
+  const from = location.state?.from || null;
 
   const validateField = (name, value) => {
     let error = '';
@@ -43,11 +53,19 @@ const Login = () => {
       [name]: value
     }));
 
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
+      }));
+    }
+    
+    // Clear general error too
+    if (errors.general) {
+      setErrors(prev => ({
+        ...prev,
+        general: ''
       }));
     }
   };
@@ -66,7 +84,7 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate all fields
@@ -83,8 +101,66 @@ const Login = () => {
     });
 
     if (Object.keys(newErrors).length === 0) {
-      console.log('Login submitted:', formData);
-      // Handle login logic here
+      setIsLoading(true);
+      
+      try {
+        console.log('Attempting login with:', { email: formData.email, password: '***' });
+        
+        const response = await login({
+          email: formData.email.trim(),
+          password: formData.password
+        });
+
+        console.log('Login successful:', response);
+
+        // Navigate based on return URL or user role
+        if (from) {
+          navigate(from, { replace: true });
+        } else {
+          const userRole = response.user?.role?.toLowerCase();
+          
+          switch (userRole) {
+            case 'employer':
+              navigate(ROUTES.EMPLOYER.DASHBOARD);
+              break;
+            case 'candidate':
+              navigate(ROUTES.CANDIDATE.DASHBOARD);
+              break;
+            case 'admin':
+              navigate(ROUTES.ADMIN.DASHBOARD);
+              break;
+            default:
+              navigate(ROUTES.HOME);
+          }
+        }
+
+      } catch (error) {
+        console.error('Login error:', error);
+        
+        // Handle different error types
+        if (error.response?.status === 401) {
+          setErrors({ 
+            general: 'Invalid email or password. Please try again.' 
+          });
+        } else if (error.response?.status === 400) {
+          setErrors({ 
+            general: error.response?.data?.message || 'Bad request. Please check your input.' 
+          });
+        } else if (error.response?.status === 422) {
+          const backendErrors = error.response.data.errors || {};
+          setErrors(backendErrors);
+        } else if (error.message) {
+          setErrors({ 
+            general: error.message 
+          });
+        } else {
+          setErrors({ 
+            general: 'Login failed. Please check your connection and try again.' 
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -102,6 +178,27 @@ const Login = () => {
         <div className="login-form-container">
           <h1 className="login-title">Sign in</h1>
 
+          {/* Test credentials info */}
+          <div className="test-credentials" style={{
+            background: '#f8f9fa',
+            border: '1px solid #dee2e6',
+            borderRadius: '4px',
+            padding: '12px',
+            marginBottom: '1rem',
+            fontSize: '0.85rem'
+          }}>
+            <strong>Test Credentials:</strong><br />
+            <strong>Employer:</strong> employer@test.com / password<br />
+            <strong>Candidate:</strong> candidate@test.com / password<br />
+            <strong>Admin:</strong> admin@test.com / password
+          </div>
+
+          {errors.general && (
+            <div className="error-banner">
+              {errors.general}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <label htmlFor="email" className="form-label">Email address</label>
@@ -114,6 +211,7 @@ const Login = () => {
                 onBlur={handleBlur}
                 placeholder="Enter your email"
                 className={`form-input ${errors.email ? 'error' : ''}`}
+                disabled={isLoading}
                 required
               />
               {errors.email && <span className="error-message">{errors.email}</span>}
@@ -134,12 +232,14 @@ const Login = () => {
                   onBlur={handleBlur}
                   placeholder="Enter password"
                   className={`form-input ${errors.password ? 'error' : ''}`}
+                  disabled={isLoading}
                   required
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
                   className="password-toggle"
+                  disabled={isLoading}
                 >
                   {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
@@ -147,8 +247,19 @@ const Login = () => {
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
 
-            <button type="submit" className="sign-in-button">
-              Sign in
+            <button 
+              type="submit" 
+              className="sign-in-button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="loading-spinner">
+                  <span className="spinner"></span>
+                  Signing in...
+                </span>
+              ) : (
+                'Sign in'
+              )}
             </button>
           </form>
 
