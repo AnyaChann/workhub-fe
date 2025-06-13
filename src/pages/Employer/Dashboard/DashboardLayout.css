@@ -10,8 +10,8 @@
   flex: 1;
 }
 .dashboard-content .create-job-container {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  /* flex-direction: column; */
   flex: 1;
 }
 
