@@ -20,7 +20,7 @@ const CreateJob = ({ onClose, onSave }) => {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [completedJobData, setCompletedJobData] = useState(null);
-  const [showDebug, setShowDebug] = useState(process.env.NODE_ENV === 'development');
+  const [showDebug, setShowDebug] = useState(false); // ✅ Disabled by default
   const dropdownRef = useRef(null);
 
   const {
@@ -31,7 +31,7 @@ const CreateJob = ({ onClose, onSave }) => {
     updateField,
     validateForm,
     getApiPayload,
-    setFormData // Add this method to useCreateJobForm
+    setFormData
   } = useCreateJobForm();
 
   // Close dropdown when clicking outside
@@ -51,7 +51,9 @@ const CreateJob = ({ onClose, onSave }) => {
   // Debug keyboard shortcut (Ctrl + D)
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === 'd' && process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV !== 'development') return;
+      
+      if (event.ctrlKey && event.key === 'd') {
         event.preventDefault();
         setShowDebug(prev => !prev);
       }
@@ -304,7 +306,7 @@ const CreateJob = ({ onClose, onSave }) => {
 
   return (
     <div className="create-job-container">
-      {/* Debug Panel */}
+      {/* Debug Panel - Only show in development and when enabled */}
       {showDebug && process.env.NODE_ENV === 'development' && (
         <DebugPanel
           formData={formData}

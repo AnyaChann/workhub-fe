@@ -1,7 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import ROUTES from './routeConstants';
 import ProtectedRoute from './ProtectedRoute';
 
@@ -17,10 +15,10 @@ import ForgotPassword from '../pages/Auth/ForgotPassword/ForgotPassword';
 // Error pages
 import NotFound from '../pages/NotFound/NotFound';
 
-// Real Dashboard Components
-import DashboardLayout from '../pages/Employer/Dashboard/DashboardLayout';
+// Dashboard Layouts
+import EmployerDashboardLayout from '../pages/Employer/Dashboard/DashboardLayout';
 
-// Import TempDashboard component
+// Temp Dashboard for other roles
 import TempDashboard from '../components/TempDashboard/TempDashboard';
 
 const CandidateDashboard = () => <TempDashboard userType="Candidate" title="Candidate Dashboard" />;
@@ -29,9 +27,10 @@ const AdminDashboard = () => <TempDashboard userType="Admin" title="Admin Dashbo
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Root redirect */}
+      <Route path="/" element={<Home />} />
+
       {/* Public routes */}
-      <Route path={ROUTES.HOME} element={<Home />} />
-      <Route path="/home" element={<Home />} />
       <Route path={ROUTES.PRICING} element={<Pricing />} />
 
       {/* Auth routes */}
@@ -39,36 +38,23 @@ const AppRoutes = () => {
       <Route path={ROUTES.REGISTER} element={<Register />} />
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
 
-      {/* Employer protected routes - Using real DashboardLayout */}
+      {/* Employer Dashboard Routes */}
       <Route 
         path={ROUTES.EMPLOYER.DASHBOARD} 
         element={
           <ProtectedRoute allowedRoles={['employer']}>
-            <DashboardLayout />
+            <EmployerDashboardLayout />
           </ProtectedRoute>
         } 
       />
 
-      {/* Alternative employer routes */}
+      {/* Employer Base Route Redirect */}
       <Route 
-        path="/employer" 
-        element={
-          <ProtectedRoute allowedRoles={['employer']}>
-            <DashboardLayout />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/employer/home" 
-        element={
-          <ProtectedRoute allowedRoles={['employer']}>
-            <DashboardLayout />
-          </ProtectedRoute>
-        } 
+        path={ROUTES.EMPLOYER.BASE} 
+        element={<Navigate to={ROUTES.EMPLOYER.JOBS.ACTIVE} replace />} 
       />
 
-      {/* Candidate protected routes */}
+      {/* Candidate Dashboard Routes */}
       <Route 
         path={ROUTES.CANDIDATE.DASHBOARD} 
         element={
@@ -78,7 +64,13 @@ const AppRoutes = () => {
         } 
       />
 
-      {/* Admin protected routes */}
+      {/* Candidate Base Route Redirect */}
+      <Route 
+        path={ROUTES.CANDIDATE.BASE} 
+        element={<Navigate to={ROUTES.CANDIDATE.DASHBOARD_BASE} replace />} 
+      />
+
+      {/* Admin Dashboard Routes */}
       <Route 
         path={ROUTES.ADMIN.DASHBOARD} 
         element={
@@ -86,6 +78,12 @@ const AppRoutes = () => {
             <AdminDashboard />
           </ProtectedRoute>
         } 
+      />
+
+      {/* Admin Base Route Redirect */}
+      <Route 
+        path={ROUTES.ADMIN.BASE} 
+        element={<Navigate to={ROUTES.ADMIN.DASHBOARD_BASE} replace />} 
       />
 
       {/* Error routes */}

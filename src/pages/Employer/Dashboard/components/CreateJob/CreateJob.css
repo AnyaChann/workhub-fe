@@ -611,23 +611,70 @@
 }
 
 .debug-toggle-btn {
-  background: #333;
-  color: #ffd700;
-  border: 1px solid #555;
-  padding: 8px 12px;
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
 .debug-toggle-btn:hover {
-  background: #444;
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
   transform: translateY(-1px);
+  opacity: 1;
 }
+
+.debug-toggle-btn.debug-active {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+  opacity: 1;
+}
+
+.debug-toggle-btn.debug-active:hover {
+  background: #218838;
+  border-color: #1e7e34;
+}
+
+/* Hide debug button in production */
+@media screen {
+  .debug-toggle-btn {
+    /* Additional visual cue that this is dev-only */
+    position: relative;
+  }
+  
+  .debug-toggle-btn::after {
+    content: "DEV";
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 8px;
+    background: #ffc107;
+    color: #333;
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  
+  .debug-toggle-btn.debug-active::after {
+    background: #dc3545;
+    color: white;
+  }
+}
+
+/* ...rest of existing styles... */
 
 /* Responsive Design */
 @media (max-width: 1024px) {

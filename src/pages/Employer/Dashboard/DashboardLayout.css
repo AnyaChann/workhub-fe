@@ -1,22 +1,72 @@
 .dashboard {
-  min-height: 100vh;
-  background-color: #f8f9fa;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  background: #f8f9fa;
 }
 
 .dashboard-content {
   display: flex;
   flex: 1;
-}
-.dashboard-content .create-job-container {
-  display: block;
-  /* flex-direction: column; */
-  flex: 1;
+  overflow: hidden;
 }
 
+.main-content-area {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+}
+
+/* Modal styles for CreateJob */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Debug info styles */
+.debug-info {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  z-index: 9999;
+  font-family: monospace;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .dashboard-content {
     flex-direction: column;
+  }
+  
+  .modal-overlay {
+    padding: 10px;
+  }
+  
+  .modal-content {
+    max-height: 95vh;
   }
 }

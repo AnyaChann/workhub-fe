@@ -1,143 +1,195 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import './DashboardLayout.css';
+
+// Components
 import DashboardHeader from './components/DashboardHeader/DashboardHeader';
 import DashboardSidebar from './components/DashboardSidebar/DashboardSidebar';
 import ActiveJobs from './components/ActiveJobs/ActiveJobs';
 import Drafts from './components/Drafts/Drafts';
 import Expired from './components/Expired/Expired';
+import CreateJob from './components/CreateJob/CreateJob';
 import Brands from './components/Brands/Brands';
 import Account from './components/Account/Account';
 import ManageUsers from './components/Account/ManageUsers/ManageUsers';
 import Inventory from './components/Account/Inventory/Inventory';
 import Profile from './components/Account/Profile/Profile';
-import CreateJob from './components/CreateJob/CreateJob';
 import SupportButton from './components/SupportButton/SupportButton';
 
-const DashboardLayout = () => {
-  const [selectedTab, setSelectedTab] = useState('active-jobs');
-  const [showCreateJob, setShowCreateJob] = useState(false);
-  const location = useLocation();
+// Constants
+import ROUTES from '../../../routes/routeConstants';
 
-  // Handle initial tab based on URL hash or query params
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const tabParam = urlParams.get('tab');
-    const hashTab = location.hash.replace('#', '');
+const DashboardLayout = () => {
+  const [showCreateJobModal, setShowCreateJobModal] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Determine current tab from URL
+  const getCurrentTab = () => {
+    const path = location.pathname;
     
-    if (tabParam) {
-      setSelectedTab(tabParam);
-    } else if (hashTab) {
-      setSelectedTab(hashTab);
-    }
-  }, [location]);
+    if (path.includes('/jobs/active')) return 'active-jobs';
+    if (path.includes('/jobs/drafts')) return 'drafts';
+    if (path.includes('/jobs/expired')) return 'expired';
+    if (path.includes('/jobs/create')) return 'create-job';
+    if (path.includes('/brands')) return 'brands';
+    if (path.includes('/account/profile')) return 'profile';
+    if (path.includes('/account/users')) return 'manage-users';
+    if (path.includes('/account/inventory')) return 'inventory';
+    if (path.includes('/account')) return 'account';
+    
+    return 'active-jobs'; // default
+  };
+
+  const currentTab = getCurrentTab();
 
   const handleCreateJob = () => {
-    setShowCreateJob(true);
+    navigate(ROUTES.EMPLOYER.JOBS.CREATE);
+  };
+
+  const handleCreateJobModal = () => {
+    setShowCreateJobModal(true);
   };
 
   const handleCloseCreateJob = () => {
-    setShowCreateJob(false);
+    setShowCreateJobModal(false);
+    // Navigate back to jobs list
+    navigate(ROUTES.EMPLOYER.JOBS.ACTIVE);
   };
 
   const handleSaveJob = (jobData) => {
     console.log('Job saved:', jobData);
-    // TODO: Save job to backend
-    setShowCreateJob(false);
+    setShowCreateJobModal(false);
     
-    // Navigate to appropriate tab based on job status
+    // Navigate based on job status
     if (jobData.status === 'draft') {
-      setSelectedTab('drafts');
+      navigate(ROUTES.EMPLOYER.JOBS.DRAFTS);
     } else {
-      setSelectedTab('active-jobs');
+      navigate(ROUTES.EMPLOYER.JOBS.ACTIVE);
     }
   };
 
-  const handleTabChange = (newTab) => {
-    setSelectedTab(newTab);
-    
-    // Update URL without full page reload
-    const url = new URL(window.location);
-    url.searchParams.set('tab', newTab);
-    window.history.pushState({}, '', url);
-    
-    console.log(`✅ Tab changed to: ${newTab}`);
+  const handleTabChange = (tab) => {
+    const tabRoutes = {
+      'active-jobs': ROUTES.EMPLOYER.JOBS.ACTIVE,
+      'drafts': ROUTES.EMPLOYER.JOBS.DRAFTS,
+      'expired': ROUTES.EMPLOYER.JOBS.EXPIRED,
+      'brands': ROUTES.EMPLOYER.BRANDS,
+      'account': ROUTES.EMPLOYER.ACCOUNT.BASE,
+      'profile': ROUTES.EMPLOYER.ACCOUNT.PROFILE,
+      'manage-users': ROUTES.EMPLOYER.ACCOUNT.USERS,
+      'inventory': ROUTES.EMPLOYER.ACCOUNT.INVENTORY
+    };
+
+    const route = tabRoutes[tab];
+    if (route) {
+      navigate(route);
+    }
   };
 
-  const renderMainContent = () => {
-    if (showCreateJob) {
-      return (
-        <CreateJob 
-          onClose={handleCloseCreateJob}
-          onSave={handleSaveJob}
-        />
-      );
-    }
-
-    console.log(`🔄 Rendering content for tab: ${selectedTab}`);
-
-    switch(selectedTab) {
-      case 'active-jobs':
-        return <ActiveJobs onCreateJob={handleCreateJob} />;
-      case 'drafts':
-        return <Drafts onCreateJob={handleCreateJob} />;
-      case 'expired':
-        return <Expired />;
-      case 'brands':
-        return <Brands />;
-      case 'account':
-        return <Account />;
-      case 'manage-users':
-        return <ManageUsers />;
-      case 'inventory':
-        return <Inventory />;
-      case 'profile':
-        return <Profile />;
-      default:
-        console.log(`⚠️ Unknown tab: ${selectedTab}, showing active-jobs`);
-        return <ActiveJobs onCreateJob={handleCreateJob} />;
-    }
+  const handleContinuePosting = (jobData) => {
+    console.log('Continue posting job:', jobData);
+    navigate(ROUTES.EMPLOYER.JOBS.CREATE, { state: { jobData } });
   };
 
   return (
     <div className="dashboard">
+      {/* Create Job Modal */}
+      {showCreateJobModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <CreateJob 
+              onClose={() => setShowCreateJobModal(false)}
+              onSave={handleSaveJob}
+            />
+          </div>
+        </div>
+      )}
+
       <DashboardHeader 
         onNavigate={handleTabChange}
-        onCreateJob={handleCreateJob}
-        currentTab={selectedTab}
+        onCreateJob={handleCreateJobModal}
+        currentTab={currentTab}
       />
       
       <div className="dashboard-content">
-        {!showCreateJob && (
-          <DashboardSidebar 
-            selectedTab={selectedTab} 
-            onTabChange={handleTabChange} 
-          />
-        )}
+        <DashboardSidebar 
+          selectedTab={currentTab} 
+          onTabChange={handleTabChange}
+          onCreateJob={handleCreateJob}
+        />
         
-        {/* <div className="main-content-area">
-           Debug info - remove in production 
-          <div style={{
-            position: 'fixed',
-            bottom: '10px',
-            left: '10px',
-            background: 'rgba(0,0,0,0.8)',
-            color: 'white',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '10px',
-            zIndex: 9999,
-            display: process.env.NODE_ENV === 'development' ? 'block' : 'none'
-          }}>
-            Current Tab: {selectedTab}
-          </div> */}
-          
-          {renderMainContent()}
+        <div className="main-content-area">
+          <Routes>
+            {/* Default redirect */}
+            <Route 
+              path="/" 
+              element={<Navigate to="jobs/active" replace />} 
+            />
+            
+            {/* Jobs routes */}
+            <Route 
+              path="jobs/active" 
+              element={<ActiveJobs onCreateJob={handleCreateJob} />} 
+            />
+            <Route 
+              path="jobs/drafts" 
+              element={
+                <Drafts 
+                  onCreateJob={handleCreateJob}
+                  onContinuePosting={handleContinuePosting}
+                />
+              } 
+            />
+            <Route 
+              path="jobs/expired" 
+              element={<Expired onCreateJob={handleCreateJob} />} 
+            />
+            <Route 
+              path="jobs/create" 
+              element={
+                <CreateJob 
+                  onClose={handleCloseCreateJob}
+                  onSave={handleSaveJob}
+                />
+              } 
+            />
+            
+            {/* Brands route */}
+            <Route 
+              path="brands" 
+              element={<Brands />} 
+            />
+            
+            {/* Account routes */}
+            <Route 
+              path="account" 
+              element={<Account />} 
+            />
+            <Route 
+              path="account/profile" 
+              element={<Profile />} 
+            />
+            <Route 
+              path="account/users" 
+              element={<ManageUsers />} 
+            />
+            <Route 
+              path="account/inventory" 
+              element={<Inventory />} 
+            />
+            
+            {/* Fallback */}
+            <Route 
+              path="*" 
+              element={<Navigate to="jobs/active" replace />} 
+            />
+          </Routes>
         </div>
       </div>
 
-    //   {!showCreateJob && <SupportButton />}
-    // </div>
+      <SupportButton />
+    </div>
   );
 };
 
