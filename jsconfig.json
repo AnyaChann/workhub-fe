@@ -1,0 +1,24 @@
+﻿{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "src/*": ["src/*"],
+      "@shared/*": ["shared/*"],
+      "@features/*": ["features/*"], 
+      "@core/*": ["core/*"],
+      "@assets/*": ["assets/*"],
+
+      "@auth/*": ["features/auth/*"],
+      "@jobs/*": ["features/jobs/*"],
+      "@dashboard/*": ["features/dashboard/*"],
+      "@marketing/*": ["features/marketing/*"],
+      "@common/*": ["features/common/*"],
+
+      "@components/*": ["shared/components/*"],
+      "@hooks/*": ["shared/hooks/*"],
+      "@utils/*": ["shared/utils/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build"]
+}
