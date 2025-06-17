@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import JobsList from '../../JobsList/JobsList';
-import JobsDebugPanel from '../../JobsDebugPanel/JobsDebugPanel';
+import JobsList from '../../../../jobs/components/shared/JobsList/JobsList';
+import JobsDebugPanel from '../JobsDebugPanel/JobsDebugPanel';
 import PageHeader from '../PageHeader/PageHeader';
 import SearchSection from '../SearchSection/SearchSection';
 import { generateMockJobs, generateSingleMockJob } from '../../../../jobs/utils/mockJobsGenerator';

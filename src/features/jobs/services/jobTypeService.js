@@ -1,4 +1,4 @@
-import api from './api'; // Import axios instance
+import api from '../../../shared/utils/helpers/api'; // Import axios instance
 
 export const jobTypeService = {
   // Get all job types

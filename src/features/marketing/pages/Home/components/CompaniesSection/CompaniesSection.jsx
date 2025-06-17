@@ -3,22 +3,22 @@ import { Link } from 'react-router-dom';
 import './CompaniesSection.css';
 
 // Import company logos
-import medrecruitLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import drakesLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import labourpowerLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import rdoLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import gsesLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import greenlightLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import commonryLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import healthscopeLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import forestryLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import whizdomLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import montessoriLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import opsmLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import strikeforceLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import sixdegreesLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import ivoryLogo from '../../../../../assets/images/companies/placeholder.jpg';
-import randstadLogo from '../../../../../assets/images/companies/placeholder.jpg';
+import medrecruitLogo from '../../../../../../assets/images/placeholder.jpg';
+import drakesLogo from '../../../../../../assets/images/placeholder.jpg';
+import labourpowerLogo from '../../../../../../assets/images/placeholder.jpg';
+import rdoLogo from '../../../../../../assets/images/placeholder.jpg';
+import gsesLogo from '../../../../../../assets/images/placeholder.jpg';
+import greenlightLogo from '../../../../../../assets/images/placeholder.jpg';
+import commonryLogo from '../../../../../../assets/images/placeholder.jpg';
+import healthscopeLogo from '../../../../../../assets/images/placeholder.jpg';
+import forestryLogo from '../../../../../../assets/images/placeholder.jpg';
+import whizdomLogo from '../../../../../../assets/images/placeholder.jpg';
+import montessoriLogo from '../../../../../../assets/images/placeholder.jpg';
+import opsmLogo from '../../../../../../assets/images/placeholder.jpg';
+import strikeforceLogo from '../../../../../../assets/images/placeholder.jpg';
+import sixdegreesLogo from '../../../../../../assets/images/placeholder.jpg';
+import ivoryLogo from '../../../../../../assets/images/placeholder.jpg';
+import randstadLogo from '../../../../../../assets/images/placeholder.jpg';
 
 const CompaniesSection = () => {
   const topRowCompanies = [

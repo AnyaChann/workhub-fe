@@ -3,18 +3,18 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import './DashboardLayout.css';
 
 // Components
-import DashboardHeader from './components/DashboardHeader/DashboardHeader';
-import DashboardSidebar from './components/DashboardSidebar/DashboardSidebar';
-import ActiveJobs from './components/ActiveJobs/ActiveJobs';
-import Drafts from './components/Drafts/Drafts';
-import Expired from './components/Expired/Expired';
-import CreateJob from './components/CreateJob/CreateJob';
-import Brands from './components/Brands/Brands';
-import Account from './components/Account/Account';
-import ManageUsers from './components/Account/ManageUsers/ManageUsers';
-import Inventory from './components/Account/Inventory/Inventory';
-import Profile from './components/Account/Profile/Profile';
-import SupportButton from '../../../components/SupportButton/SupportButton';
+import DashboardHeader from '../components/employer/DashboardHeader/DashboardHeader';
+import DashboardSidebar from '../components/employer/DashboardSidebar/DashboardSidebar';
+import ActiveJobs from '../../jobs/components/manage/ActiveJobs/ActiveJobs';
+import Drafts from '../../jobs/components/manage/Drafts/Drafts';
+import Expired from '../../jobs/components/manage/Expired/Expired';
+import CreateJob from '../../jobs/components/create/CreateJob';
+import Brands from '../components/employer/Brands/Brands';
+import Account from '../components/employer/Account/Account';
+import ManageUsers from '../components/employer/Account/ManageUsers/ManageUsers';
+import Inventory from '../components/employer/Account/Inventory/Inventory';
+import Profile from '../components/employer/Account/Profile/Profile';
+import SupportButton from '../../../shared/components/SupportButton/SupportButton';
 
 const DashboardLayout = () => {
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);

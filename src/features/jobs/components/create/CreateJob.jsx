@@ -1,6 +1,6 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
 import './CreateJob.css';
-import { InlineLoadingSpinner, ButtonLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
+import { InlineLoadingSpinner, ButtonLoadingSpinner } from '../../../../shared/components/LoadingSpinner/LoadingSpinner';
 
 // Components
 import CompanySection from './components/CompanySection/CompanySection';
@@ -9,11 +9,11 @@ import JobTypeSection from './components/JobTypeSection/JobTypeSection';
 import CategorySection from './components/CategorySection/CategorySection';
 import PaySection from './components/PaySection/PaySection';
 import FormActions from './components/FormActions/FormActions';
-import JobCheckout from '../JobCheckout/JobCheckout';
+import JobCheckout from './components/JobCheckout/JobCheckout';
 import DebugPanel from './components/DebugPanel/DebugPanel';
 
 // Hooks
-import { useCreateJobForm } from '@hooks/form/useCreateJobForm';
+import { useCreateJobForm } from '../../../../shared/hooks/useCreateJobForm';
 
 const CreateJob = ({ onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ const CreateJob = ({ onClose, onSave }) => {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [completedJobData, setCompletedJobData] = useState(null);
-  const [showDebug, setShowDebug] = useState(false); // âœ… Disabled by default
+  const [showDebug, setShowDebug] = useState(false); //  Disabled by default
   const dropdownRef = useRef(null);
 
   const {

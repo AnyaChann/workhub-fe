@@ -1,7 +1,7 @@
 ﻿import React, { useContext } from 'react';
-import { useAuth } from '@core/contexts/AuthContext';
+import { useAuth } from '../../../core/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { PageLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
+import { PageLoadingSpinner } from '../LoadingSpinner/LoadingSpinner';
 
 const TempDashboard = ({ 
   userType, 
@@ -158,7 +158,7 @@ const TempDashboard = ({
           </h4>
           <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>
             <p style={{ margin: '0 0 0.5rem 0' }}>
-              âœ… <strong>Employer Dashboard:</strong> Fully functional
+               <strong>Employer Dashboard:</strong> Fully functional
             </p>
             <p style={{ margin: '0 0 0.5rem 0' }}>
               ðŸš§ <strong>{userType} Dashboard:</strong> Under development

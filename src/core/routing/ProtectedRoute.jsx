@@ -1,13 +1,13 @@
 ﻿import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@core/contexts/AuthContext';
-import { PageLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
+import { useAuth } from '../../core/contexts/AuthContext';
+// import { PageLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
 import ROUTES from './routeConstants';
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const location = useLocation();
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   // Show loading while checking authentication
   // if (loading) {

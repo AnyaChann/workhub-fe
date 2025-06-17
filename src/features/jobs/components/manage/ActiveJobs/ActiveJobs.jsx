@@ -1,5 +1,5 @@
 import React from 'react';
-import JobsPageLayout from '../shared/JobsPageLayout/JobsPageLayout';
+import JobsPageLayout from '../../../../dashboard/components/shared/JobsPageLayout/JobsPageLayout';
 
 const ActiveJobs = ({ onCreateJob }) => {
   const emptyStateConfig = {

@@ -1,10 +1,10 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { useAuth } from '@core/contexts/AuthContext';
-import { userService } from '../../../../services/userService';
+import { useAuth } from '../../../../../core/contexts/AuthContext';
+import { userService } from '../../../../../shared/utils/helpers/userService';
 import './Account.css';
 import EditCompanyModal from './Modal/EditCompanyModal/EditCompanyModal';
 import EditBillingModal from './Modal/EditBillingModal/EditBillingModal';
-import { PageLoadingSpinner, InlineLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
+import { PageLoadingSpinner, InlineLoadingSpinner } from '../../../../../shared/components/LoadingSpinner/LoadingSpinner';
 
 const Account = () => {
   const { user, email } = useAuth();
@@ -205,7 +205,7 @@ const Account = () => {
 
       {success && (
         <div className="alert alert-success">
-          <span className="alert-icon">âœ…</span>
+          <span className="alert-icon"></span>
           {success}
         </div>
       )}

@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../../../shared/utils/helpers/api';
 
 export const jobPositionService = {
   // Get all job positions

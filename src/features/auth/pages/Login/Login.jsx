@@ -1,9 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@core/contexts/AuthContext';
-import ROUTES from '@core/routing/routeConstants';
-import ApiTest from '../../../components/ApiTest/ApiTest';
-import { ButtonLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
+import { useAuth } from '../../../../core/contexts/AuthContext';
+import ROUTES from '../../../../core/routing/routeConstants';
+import ApiTest from '../../../../shared/components/ApiTest/ApiTest';
+import { ButtonLoadingSpinner } from '../../../../shared/components/LoadingSpinner/LoadingSpinner';
 import './Login.css';
 
 const Login = () => {
@@ -97,7 +97,7 @@ const Login = () => {
           maxWidth: '400px'
         }}>
           <h2 style={{ color: '#28a745', marginBottom: '1rem' }}>
-            âœ… Already Logged In
+             Already Logged In
           </h2>
           <p style={{ color: '#666', marginBottom: '1.5rem' }}>
             You are already authenticated as <strong>{userRole?.toUpperCase()}</strong>
@@ -214,13 +214,13 @@ const Login = () => {
           password: formData.password
         });
 
-        console.log('âœ… Login successful:', response);
+        console.log(' Login successful:', response);
         setLoginSuccess(true);
 
         // Show success message with user info
         const isMock = response.message && response.message.includes('Mock');
         setErrors({
-          success: `âœ… Welcome ${response.user?.fullname}! ${isMock ? '(Mock data)' : '(Database user)'}`
+          success: ` Welcome ${response.user?.fullname}! ${isMock ? '(Mock data)' : '(Database user)'}`
         });
 
         // Navigate after showing success message

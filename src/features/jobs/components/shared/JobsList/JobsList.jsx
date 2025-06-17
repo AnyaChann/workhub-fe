@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import JobCard from '@jobs/components/shared/JobCard/JobCard';
-import { JobsLoadingSpinner } from '@components/ui/LoadingSpinner/LoadingSpinner';
+import JobCard from '../JobCard/JobCard';
+import { JobsLoadingSpinner } from '../../../../../shared/components/LoadingSpinner/LoadingSpinner';
 import './JobsList.css';
 
 const JobsList = ({ 

@@ -2,10 +2,10 @@ import React from 'react';
 import './HeroSection.css';
 
 // Import images from assets
-import candidate1 from '../../../../../assets/images/candidate1.jpg';
-import candidate2 from '../../../../../assets/images/candidate2.jpg';
-import candidate3 from '../../../../../assets/images/candidate3.jpg';
-import candidate4 from '../../../../../assets/images/candidate4.jpg';
+import candidate1 from '../../../../../../assets/images/candidate1.jpg';
+import candidate2 from '../../../../../../assets/images/candidate2.jpg';
+import candidate3 from '../../../../../../assets/images/candidate3.jpg';
+import candidate4 from '../../../../../../assets/images/candidate4.jpg';
 
 const HeroSection = () => {
   return (

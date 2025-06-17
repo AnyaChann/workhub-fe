@@ -1,6 +1,6 @@
 import React from 'react';
 import './BelongingSection.css';
-import belonging from '../../../../../assets/images/belonging.jpg';
+import belonging from '../../../../../../assets/images/belonging.jpg';
 
 const BelongingSection = () => {
   return (

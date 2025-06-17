@@ -1,5 +1,5 @@
 import React from 'react';
-import { InlineLoadingSpinner } from '../../../../../../../components/LoadingSpinner/LoadingSpinner';
+import { InlineLoadingSpinner } from '../../../../../../shared/components/LoadingSpinner/LoadingSpinner';
 import './FormActions.css';
 
 const FormActions = ({ 

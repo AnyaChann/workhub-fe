@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../../../../contexts/AuthContext';
+import { useAuth } from '../../../../../../core/contexts/AuthContext';
 import './AccountDropdown.css';
 
 const AccountDropdown = ({ onNavigate }) => {

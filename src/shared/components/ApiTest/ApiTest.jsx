@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { authService } from '../../services';
+import { authService } from '../../../features/auth/services/authService';
 
 const ApiTest = () => {
   const [testResult, setTestResult] = useState('');

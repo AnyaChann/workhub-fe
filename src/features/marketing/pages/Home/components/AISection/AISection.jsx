@@ -1,6 +1,6 @@
 import React from 'react';
 import './AISection.css';
-import aiCandidateImg from '../../../../../assets/images/ai-candidate.jpg';
+import aiCandidateImg from '../../../../../../assets/images/ai-candidate.jpg';
 
 // Icon SVGs
 const icons = {

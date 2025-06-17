@@ -2,8 +2,8 @@ import React from 'react';
 import './FeaturesSection.css';
 
 // Import images from assets
-import dashboardImg from '../../../../../assets/images/feature-dashboard.jpg';
-import huntersImg from '../../../../../assets/images/feature-hunters.jpg';
+import dashboardImg from '../../../../../../assets/images/feature-dashboard.jpg';
+import huntersImg from '../../../../../../assets/images/feature-hunters.jpg';
 
 const FeaturesSection = () => {
   return (

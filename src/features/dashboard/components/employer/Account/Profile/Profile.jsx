@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../../../../../contexts/AuthContext';
-import { userService } from '../../../../../services/userService';
-import InlineLoadingSpinner from '../../../../../../components/LoadingSpinner/LoadingSpinner';
+import { useAuth } from '../../../../../../core/contexts/AuthContext';
+import { userService } from '../../../../../../shared/utils/helpers/userService';
+import InlineLoadingSpinner from '../../../../../../shared/components/LoadingSpinner/LoadingSpinner';
 import './Profile.css';
 import EditProfileModal from '../Modal/EditProfileModal/EditProfileModal';
 import ChangePasswordModal from '../Modal/ChangePasswordModal/ChangePasswordModal';
