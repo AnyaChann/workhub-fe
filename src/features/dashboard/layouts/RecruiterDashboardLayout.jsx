@@ -1,30 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../core/contexts/AuthContext';
+import ROUTES from '../../../core/routing/routeConstants';
 import './DashboardLayout.css';
 
-// Components
-import DashboardHeader from '../components/employer/DashboardHeader/DashboardHeader';
-import DashboardSidebar from '../components/employer/DashboardSidebar/DashboardSidebar';
+// Recruiter Components
+import DashboardHeader from '../components/recruiter/DashboardHeader/DashboardHeader';
+import DashboardSidebar from '../components/recruiter/DashboardSidebar/DashboardSidebar';
 import ActiveJobs from '../../jobs/components/manage/ActiveJobs/ActiveJobs';
 import Drafts from '../../jobs/components/manage/Drafts/Drafts';
 import Expired from '../../jobs/components/manage/Expired/Expired';
 import CreateJob from '../../jobs/components/create/CreateJob';
-import Brands from '../components/employer/Brands/Brands';
-import Account from '../components/employer/Account/Account';
-import ManageUsers from '../components/employer/Account/ManageUsers/ManageUsers';
-import Inventory from '../components/employer/Account/Inventory/Inventory';
-import Profile from '../components/employer/Account/Profile/Profile';
+import Brands from '../components/recruiter/Brands/Brands';
+import Account from '../components/recruiter/Account/Account';
+import ManageUsers from '../components/recruiter/Account/ManageUsers/ManageUsers';
+import Inventory from '../components/recruiter/Account/Inventory/Inventory';
+import Profile from '../components/recruiter/Account/Profile/Profile';
 import SupportButton from '../../../shared/components/SupportButton/SupportButton';
 
-const DashboardLayout = () => {
+const RecruiterDashboardLayout = () => {
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isRecruiter, userRole } = useAuth();
 
   // Debug current path
   useEffect(() => {
-    console.log('📍 DashboardLayout - Current path:', location.pathname);
-  }, [location.pathname]);
+    console.log('📍 RecruiterDashboardLayout - Current path:', location.pathname);
+    console.log('👤 User role:', userRole);
+  }, [location.pathname, userRole]);
+
+  // Security check - only recruiters can access
+  useEffect(() => {
+    if (!isRecruiter()) {
+      console.warn('❌ Non-recruiter trying to access recruiter dashboard');
+      navigate('/unauthorized', { replace: true });
+    }
+  }, [isRecruiter, navigate]);
 
   // Determine current tab from URL
   const getCurrentTab = () => {
@@ -33,8 +45,11 @@ const DashboardLayout = () => {
     if (path.includes('/jobs/active')) return 'active-jobs';
     if (path.includes('/jobs/drafts')) return 'drafts';
     if (path.includes('/jobs/expired')) return 'expired';
+    if (path.includes('/jobs/archived')) return 'archived';
     if (path.includes('/jobs/create')) return 'create-job';
-    if (path.includes('/brands')) return 'brands';
+    if (path.includes('/candidates')) return 'candidates';
+    if (path.includes('/company')) return 'company';
+    if (path.includes('/reports')) return 'reports';
     if (path.includes('/account/profile')) return 'profile';
     if (path.includes('/account/users')) return 'manage-users';
     if (path.includes('/account/inventory')) return 'inventory';
@@ -46,7 +61,7 @@ const DashboardLayout = () => {
   const currentTab = getCurrentTab();
 
   const handleCreateJob = () => {
-    navigate('/employer/dashboard/jobs/create');
+    navigate(ROUTES.RECRUITER.JOBS.CREATE);
   };
 
   const handleCreateJobModal = () => {
@@ -55,7 +70,7 @@ const DashboardLayout = () => {
 
   const handleCloseCreateJob = () => {
     setShowCreateJobModal(false);
-    navigate('/employer/dashboard/jobs/active');
+    navigate(ROUTES.RECRUITER.JOBS.ACTIVE);
   };
 
   const handleSaveJob = (jobData) => {
@@ -63,22 +78,25 @@ const DashboardLayout = () => {
     setShowCreateJobModal(false);
     
     if (jobData.status === 'draft') {
-      navigate('/employer/dashboard/jobs/drafts');
+      navigate(ROUTES.RECRUITER.JOBS.DRAFTS);
     } else {
-      navigate('/employer/dashboard/jobs/active');
+      navigate(ROUTES.RECRUITER.JOBS.ACTIVE);
     }
   };
 
   const handleTabChange = (tab) => {
     const tabRoutes = {
-      'active-jobs': '/employer/dashboard/jobs/active',
-      'drafts': '/employer/dashboard/jobs/drafts',
-      'expired': '/employer/dashboard/jobs/expired',
-      'brands': '/employer/dashboard/brands',
-      'account': '/employer/dashboard/account',
-      'profile': '/employer/dashboard/account/profile',
-      'manage-users': '/employer/dashboard/account/users',
-      'inventory': '/employer/dashboard/account/inventory'
+      'active-jobs': ROUTES.RECRUITER.JOBS.ACTIVE,
+      'drafts': ROUTES.RECRUITER.JOBS.DRAFTS,
+      'expired': ROUTES.RECRUITER.JOBS.EXPIRED,
+      'archived': ROUTES.RECRUITER.JOBS.ARCHIVED,
+      'candidates': ROUTES.RECRUITER.CANDIDATES.BASE,
+      'company': ROUTES.RECRUITER.COMPANY.PROFILE,
+      'reports': ROUTES.RECRUITER.REPORTS.ANALYTICS,
+      'account': ROUTES.RECRUITER.ACCOUNT.PROFILE,
+      'profile': ROUTES.RECRUITER.ACCOUNT.PROFILE,
+      'manage-users': `${ROUTES.RECRUITER.COMPANY.TEAM}`,
+      'inventory': `${ROUTES.RECRUITER.COMPANY.BILLING}`
     };
 
     const route = tabRoutes[tab];
@@ -90,8 +108,12 @@ const DashboardLayout = () => {
 
   const handleContinuePosting = (jobData) => {
     console.log('Continue posting job:', jobData);
-    navigate('/employer/dashboard/jobs/create', { state: { jobData } });
+    navigate(ROUTES.RECRUITER.JOBS.CREATE, { state: { jobData } });
   };
+
+  if (!user) {
+    return null; // ProtectedRoute should handle this
+  }
 
   return (
     <div className="dashboard">
@@ -111,6 +133,7 @@ const DashboardLayout = () => {
         onNavigate={handleTabChange}
         onCreateJob={handleCreateJobModal}
         currentTab={currentTab}
+        userType="recruiter"
       />
       
       <div className="dashboard-content">
@@ -118,18 +141,18 @@ const DashboardLayout = () => {
           selectedTab={currentTab} 
           onTabChange={handleTabChange}
           onCreateJob={handleCreateJob}
+          userType="recruiter"
         />
         
         <div className="main-content-area">
-          {/* ✅ Fix nested routing - remove redundant redirects */}
           <Routes>
-            {/* ✅ Default to jobs/active - NO LOOP */}
+            {/* Default redirect to active jobs */}
             <Route 
               index
               element={<Navigate to="jobs/active" replace />} 
             />
             
-            {/* ✅ Jobs routes - relative paths work correctly */}
+            {/* Jobs Management Routes */}
             <Route 
               path="jobs/active" 
               element={<ActiveJobs onCreateJob={handleCreateJob} />} 
@@ -157,14 +180,16 @@ const DashboardLayout = () => {
               } 
             />
             
-            {/* Other routes */}
-            <Route path="brands" element={<Brands />} />
+            {/* Company Management Routes */}
+            <Route path="company/*" element={<Brands />} />
+            
+            {/* Account Management Routes */}
             <Route path="account" element={<Account />} />
             <Route path="account/profile" element={<Profile />} />
-            <Route path="account/users" element={<ManageUsers />} />
-            <Route path="account/inventory" element={<Inventory />} />
+            <Route path="account/team" element={<ManageUsers />} />
+            <Route path="account/billing" element={<Inventory />} />
             
-            {/* ✅ Fallback redirect - ONLY once */}
+            {/* Fallback redirect */}
             <Route 
               path="*" 
               element={<Navigate to="jobs/active" replace />} 
@@ -177,23 +202,12 @@ const DashboardLayout = () => {
       
       {/* Debug info */}
       {process.env.NODE_ENV === 'development' && (
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          left: '10px',
-          background: 'rgba(0,0,0,0.8)',
-          color: 'white',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          zIndex: 9999,
-          fontFamily: 'monospace'
-        }}>
-          Path: {location.pathname} | Tab: {currentTab}
+        <div className="debug-info">
+          Path: {location.pathname} | Tab: {currentTab} | Role: {userRole}
         </div>
       )}
     </div>
   );
 };
 
-export default DashboardLayout;
+export default RecruiterDashboardLayout;

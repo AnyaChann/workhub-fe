@@ -1,0 +1,113 @@
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.logout-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variants */
+.logout-button--default {
+  background-color: #6c757d;
+  color: white;
+  border: 1px solid transparent;
+}
+
+.logout-button--default:hover:not(:disabled) {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.logout-button--icon {
+  background: none;
+  color: #6c757d;
+  border: none;
+  font-size: 1.2rem;
+}
+
+.logout-button--icon:hover:not(:disabled) {
+  color: #dc3545;
+  transform: scale(1.1);
+}
+
+.logout-button--text {
+  background: none;
+  color: #6c757d;
+  border: none;
+  text-decoration: underline;
+}
+
+.logout-button--text:hover:not(:disabled) {
+  color: #dc3545;
+}
+
+.logout-button--danger {
+  background-color: #dc3545;
+  color: white;
+  border: 1px solid #dc3545;
+}
+
+.logout-button--danger:hover:not(:disabled) {
+  background-color: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-1px);
+}
+
+/* Sizes */
+.logout-button--small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  gap: 0.25rem;
+}
+
+.logout-button--medium {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.logout-button--large {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Icon and text elements */
+.logout-icon {
+  font-size: 1em;
+  line-height: 1;
+}
+
+.logout-text {
+  line-height: 1;
+}
+
+/* Focus styles */
+.logout-button:focus-visible {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .logout-button--medium {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .logout-button--large {
+    padding: 0.625rem 1rem;
+    font-size: 0.9rem;
+  }
+}

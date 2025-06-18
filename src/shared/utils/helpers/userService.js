@@ -8,7 +8,6 @@ export const userService = {
       return response;
     } catch (error) {
       console.error('Get user profile failed:', error);
-      // Return mock data for development
       return {
         firstName: 'John',
         lastName: 'Doe',
@@ -20,15 +19,25 @@ export const userService = {
     }
   },
 
-  // Update user profile
+  // ✅ Updated to use /users/profile
   updateUserProfile: async (profileData) => {
     try {
       const response = await api.put('/users/profile', profileData);
       return response;
     } catch (error) {
       console.error('Update user profile failed:', error);
-      // For development, simulate success
       return profileData;
+    }
+  },
+
+  // ✅ Updated to use /users/password  
+  changePassword: async (passwordData) => {
+    try {
+      const response = await api.put('/users/password', passwordData);
+      return response;
+    } catch (error) {
+      console.error('Change password failed:', error);
+      throw error;
     }
   },
 
@@ -169,16 +178,6 @@ export const userService = {
     }
   },
 
-  // Change password
-  changePassword: async (passwordData) => {
-    try {
-      const response = await api.put('/users/change-password', passwordData);
-      return response;
-    } catch (error) {
-      console.error('Change password failed:', error);
-      throw error;
-    }
-  },
 
   // Delete account
   deleteAccount: async () => {

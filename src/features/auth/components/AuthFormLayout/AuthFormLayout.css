@@ -1,0 +1,17 @@
+.auth-form-layout {
+  /* Additional styling if needed */
+}
+
+.auth-form-layout .auth-form {
+  margin: 1.5rem 0;
+}
+
+.auth-form-layout .message-banner {
+  margin-bottom: 1rem;
+}
+
+/* Override auth-footer spacing when used in layout */
+.auth-form-layout .auth-footer {
+  margin-top: 1.5rem;
+}
+
