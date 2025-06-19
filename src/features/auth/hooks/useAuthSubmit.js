@@ -92,6 +92,79 @@ export const useAuthSubmit = (type) => {
     }
   };
 
+    // Add this method inside useAuthSubmit hook
+  const submitForgotPassword = async (email, options = {}) => {
+    try {
+      setIsLoading(true);
+      setError('');
+      setMessage('');
+      
+      console.log('📧 useAuthSubmit: Starting forgot password for:', email);
+      
+      // ✅ Call AuthService forgot password
+      const result = await authService.forgotPassword(email);
+      
+      console.log('✅ useAuthSubmit: Forgot password result:', result);
+      
+      if (result.success) {
+        const successMsg = result.message || 'Password reset email sent successfully';
+        setMessage(successMsg);
+        
+        if (options.onSuccess) {
+          options.onSuccess(result, successMsg);
+        }
+        
+        // ✅ Optional: Navigate to success page or stay on current page
+        // No automatic navigation for forgot password
+      }
+  
+      return result;
+  
+    } catch (error) {
+      console.error('❌ useAuthSubmit: Forgot password failed:', error);
+      setError(error.message || 'Failed to send reset email');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const submitResetPassword = async (resetData, options = {}) => {
+    try {
+      setIsLoading(true);
+      setError('');
+      setMessage('');
+      
+      console.log('🔑 useAuthSubmit: Starting password reset...');
+      
+      // ✅ Call AuthService reset password
+      const result = await authService.resetPassword(resetData.token, resetData.newPassword);
+      
+      console.log('✅ useAuthSubmit: Password reset result:', result);
+      
+      if (result.success) {
+        const successMsg = result.message || 'Password reset successfully';
+        setMessage(successMsg);
+        
+        if (options.onSuccess) {
+          options.onSuccess(result, successMsg);
+        }
+        
+        // ✅ Optional: Navigate to login page after successful reset
+        // No automatic navigation - let component handle it
+      }
+  
+      return result;
+  
+    } catch (error) {
+      console.error('❌ useAuthSubmit: Password reset failed:', error);
+      setError(error.message || 'Failed to reset password');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const submitRegister = async (userData, options = {}) => {
     let registrationType = 'recruiter'; // Default registration type
     try {
@@ -189,6 +262,8 @@ export const useAuthSubmit = (type) => {
   }
   return {
     submitLogin,
+    submitForgotPassword,
+    submitResetPassword,
     submitRegister,
     isLoading,
     error,

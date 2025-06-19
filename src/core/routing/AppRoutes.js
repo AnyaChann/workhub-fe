@@ -12,6 +12,7 @@ const Pricing = React.lazy(() => import('../../features/marketing/pages/Pricing/
 const Login = React.lazy(() => import('../../features/auth/pages/Login/Login'));
 const Register = React.lazy(() => import('../../features/auth/pages/Register/Register'));
 const ForgotPassword = React.lazy(() => import('../../features/auth/pages/ForgotPassword/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('../../features/auth/pages/ResetPassword/ResetPassword'));
 
 // Account status pages
 const UnverifiedAccount = React.lazy(() => import('../../features/auth/pages/UnverifiedAccount/UnverifiedAccount'));
@@ -115,6 +116,14 @@ const AppRoutes = () => {
             <ForgotPassword />
           </SuspenseWrapper>
         }
+      />
+      <Route 
+        path="/reset-password" 
+        element={
+          <SuspenseWrapper>
+            <ResetPassword />
+          </SuspenseWrapper>
+        } 
       />
 
       {/* ✅ Account status routes */}
