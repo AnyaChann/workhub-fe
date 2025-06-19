@@ -1,0 +1,13 @@
+﻿.active-jobs-page {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.active-jobs-page .page-header {
+  margin-bottom: 1.5rem;
+}
+
+.active-jobs-page .search-section {
+  margin-bottom: 1.5rem;
+}

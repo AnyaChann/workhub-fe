@@ -1,5 +1,5 @@
 import React from 'react';
-import { useJobTypes } from '../../../../hooks/useJobTypes';
+import { useJobTypes } from '../../../../../recruiter/hooks/useJobTypes';
 import './JobTypeSection.css';
 
 const JobTypeSection = ({ 

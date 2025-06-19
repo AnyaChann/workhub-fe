@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useCategoriesAndPositions } from '../../../../hooks/useCategoriesAndPositions';
+import { useCategoriesAndPositions } from '../../../../../recruiter/hooks/useCategoriesAndPositions';
 import './CategorySection.css';
 
 const CategorySection = ({ 

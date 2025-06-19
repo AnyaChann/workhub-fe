@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../core/contexts/AuthContext';
 import ROUTES from '../../../core/routing/routeConstants';
-import './DashboardLayout.css';
+// import './DashboardLayout.css';
 
 // Admin Components (placeholders for now)
 import TempDashboard from '../../../shared/components/TempDashboard/TempDashboard';

@@ -13,9 +13,9 @@
   align-items: center;
 }
 
-.logo {
+.header .logo {
   display: flex;
-  align-items: center;
+  align-items: center !important;
 }
 
 .logo-text {

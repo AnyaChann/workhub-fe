@@ -20,7 +20,7 @@ const SuspendedAccount = React.lazy(() => import('../../features/auth/pages/Susp
 const BannedAccount = React.lazy(() => import('../../features/auth/pages/BannedAccount/BannedAccount'));
 
 // Dashboard Layouts
-const RecruiterDashboardLayout = React.lazy(() => import('../../features/dashboard/layouts/RecruiterDashboardLayout'));
+const RecruiterDashboardLayout = React.lazy(() => import('../../features/recruiter/components/layout/RecruiterLayout/RecruiterLayout'));
 const CandidateDashboardLayout = React.lazy(() => import('../../features/dashboard/layouts/CandidateDashboardLayout'));
 const AdminDashboardLayout = React.lazy(() => import('../../features/dashboard/layouts/AdminDashboardLayout'));
 
