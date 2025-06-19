@@ -1,0 +1,471 @@
+/* ✅ Main Layout Structure */
+.recruiter-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* ✅ Layout Content Area */
+.layout-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ✅ Main Content Area */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+
+/* ✅ Page Container - For consistent padding in all pages */
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  min-height: calc(100vh - 120px);
+}
+
+/* ✅ Modal Overlay - Enhanced */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ✅ Modal Content - Enhanced */
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 95vh;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ✅ Modal Body with Scrolling */
+.modal-body {
+  overflow-y: auto;
+  max-height: calc(95vh - 60px);
+  padding: 0;
+}
+
+/* ✅ Modal Close Button */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(148, 163, 184, 0.1);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #64748b;
+}
+
+.modal-close:hover {
+  background: rgba(148, 163, 184, 0.2);
+  color: #334155;
+  transform: scale(1.05);
+}
+
+.modal-close:active {
+  transform: scale(0.95);
+}
+
+/* ✅ Debug Info - Enhanced */
+.debug-info {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  z-index: 9998;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  border: 1px solid #475569;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+.debug-info::before {
+  content: '🐛';
+  margin-right: 6px;
+}
+
+/* ✅ Content Loading State */
+.content-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  flex-direction: column;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.content-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ✅ Error State */
+.content-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  flex-direction: column;
+  gap: 1rem;
+  color: #ef4444;
+  text-align: center;
+  padding: 2rem;
+}
+
+.content-error .error-icon {
+  font-size: 3rem;
+}
+
+.content-error .error-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.content-error .error-message {
+  color: #64748b;
+  margin: 0;
+}
+
+.content-error .retry-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.content-error .retry-button:hover {
+  background: #2563eb;
+}
+
+/* ✅ Responsive Design */
+@media (max-width: 1024px) {
+  .layout-content {
+    flex-direction: column;
+  }
+  
+  .page-container {
+    padding: 1rem;
+  }
+  
+  .modal-overlay {
+    padding: 12px;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+    max-height: 98vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .recruiter-layout {
+    font-size: 14px;
+  }
+  
+  .page-container {
+    padding: 0.75rem;
+    min-height: calc(100vh - 100px);
+  }
+  
+  .modal-overlay {
+    padding: 8px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+    max-height: 95vh;
+  }
+  
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+  
+  .debug-info {
+    bottom: 8px;
+    left: 8px;
+    font-size: 10px;
+    padding: 6px 8px;
+    max-width: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 0.5rem;
+  }
+  
+  .modal-content {
+    margin: 0;
+    border-radius: 0;
+    max-height: 100vh;
+    width: 100vw;
+  }
+  
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .debug-info {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin: 0.5rem;
+    font-size: 9px;
+  }
+}
+
+/* ✅ Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+  .recruiter-layout {
+    background: #0f172a;
+  }
+  
+  .layout-content {
+    background: #1e293b;
+    border-top-color: #334155;
+  }
+  
+  .main-content {
+    /* background: #0f172a; */
+  }
+  
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .modal-content {
+    background: #1e293b;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ✅ Print Styles */
+@media print {
+  .recruiter-layout {
+    height: auto;
+  }
+  
+  .modal-overlay,
+  .debug-info {
+    display: none;
+  }
+  
+  .main-content {
+    overflow: visible;
+  }
+  
+  .page-container {
+    padding: 0;
+    max-width: none;
+  }
+}
+
+/* ✅ High Contrast Mode */
+@media (prefers-contrast: high) {
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.95);
+  }
+  
+  .modal-content {
+    border: 2px solid #000;
+  }
+  
+  .debug-info {
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+  }
+}
+
+/* ✅ Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-content,
+  .modal-close,
+  .content-loading .spinner {
+    animation: none;
+    transition: none;
+  }
+  
+  .modal-close:hover {
+    transform: none;
+  }
+}
+
+/* ✅ Focus Management */
+.modal-content:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}
+
+.modal-close:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ✅ Layout Utilities */
+.layout-flex {
+  display: flex;
+}
+
+.layout-flex-col {
+  flex-direction: column;
+}
+
+.layout-flex-1 {
+  flex: 1;
+}
+
+.layout-hidden {
+  display: none;
+}
+
+.layout-visible {
+  display: block;
+}
+
+/* ✅ Scrollbar Styling */
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* ✅ Performance Optimizations */
+.modal-overlay {
+  will-change: opacity;
+}
+
+.modal-content {
+  will-change: transform, opacity;
+}
+
+.main-content {
+  contain: layout style paint;
+}
+
+/* ✅ Safe Area Support for Mobile Devices */
+@supports (padding: max(0px)) {
+  .page-container {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  
+  .modal-overlay {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}

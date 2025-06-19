@@ -1,117 +1,268 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../../../core/contexts/AuthContext';
+import { servicePackageService } from '../../../services/servicePackageService';
+import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import './BillingPage.css';
 
-const Inventory = () => {
-  const [jobPackages] = useState([
-    {
-      id: 1,
-      type: 'Standard jobs',
-      icon: '📄',
-      quantity: 0,
-      description: 'Basic job posting with standard visibility'
-    },
-    {
-      id: 2,
-      type: 'Plus jobs',
-      icon: '📄',
-      quantity: 0,
-      description: 'Enhanced job posting with better visibility'
-    },
-    {
-      id: 3,
-      type: 'Premium jobs',
-      icon: '📄',
-      quantity: 0,
-      description: 'Premium job posting with maximum visibility'
+const BillingPage = () => {
+  const [packages, setPackages] = useState([]);
+  const [userPackages, setUserPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const { user } = useAuth();
+
+  useEffect(() => {
+    loadBillingData();
+  }, [user]);
+
+  const loadBillingData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('💳 Loading billing data...');
+      
+      // Load available packages and user's current packages
+      const [availablePackages, currentPackages] = await Promise.all([
+        servicePackageService.getAllPackages(),
+        user?.id ? servicePackageService.getUserPackages(user.id) : Promise.resolve([])
+      ]);
+      
+      console.log('📦 Available packages:', availablePackages);
+      console.log('� User packages:', currentPackages);
+      
+      setPackages(Array.isArray(availablePackages) ? availablePackages : []);
+      setUserPackages(Array.isArray(currentPackages) ? currentPackages : []);
+      
+    } catch (err) {
+      console.error('❌ Error loading billing data:', err);
+      setError(err.message || 'Failed to load billing information');
+      
+      // Fallback mock data
+      setPackages([
+        {
+          id: 1,
+          name: 'Basic Package',
+          description: '5 job postings per month',
+          price: 99,
+          currency: 'USD',
+          jobPostings: 5,
+          featured: false
+        },
+        {
+          id: 2,
+          name: 'Professional Package',
+          description: '20 job postings per month + featured listings',
+          price: 299,
+          currency: 'USD',
+          jobPostings: 20,
+          featured: true
+        },
+        {
+          id: 3,
+          name: 'Enterprise Package',
+          description: 'Unlimited job postings + premium support',
+          price: 999,
+          currency: 'USD',
+          jobPostings: -1, // unlimited
+          featured: true
+        }
+      ]);
+      
+      setUserPackages([
+        {
+          id: 1,
+          packageName: 'Professional Package',
+          jobPostingsRemaining: 15,
+          jobPostingsTotal: 20,
+          expiryDate: '2024-07-20',
+          status: 'active'
+        }
+      ]);
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const handlePostJob = (packageType) => {
-    console.log(`Post ${packageType} job clicked`);
-    // TODO: Navigate to job posting form with selected package type
   };
 
-  const handleBuyPackage = (packageType) => {
-    console.log(`Buy ${packageType} package clicked`);
-    // TODO: Navigate to payment/purchase flow
+  const handlePurchasePackage = async (packageItem) => {
+    console.log('💰 Purchase package:', packageItem);
+    
+    // Here you would integrate with payment service
+    alert(`Purchase ${packageItem.name} for $${packageItem.price} - Payment integration coming soon!`);
   };
 
-  const getPackageTypeClass = (type) => {
-    return type.toLowerCase().replace(' ', '-');
+  const handleRenewPackage = async (userPackage) => {
+    console.log('🔄 Renew package:', userPackage);
+    alert('Package renewal - Payment integration coming soon!');
   };
 
-  const getBuyButtonText = (type) => {
-    const packageName = type.split(' ')[0].toLowerCase();
-    return `Buy ${packageName}`;
-  };
+  if (loading) {
+    return (
+      <div className="billing-page">
+        <PageHeader title="Billing & Packages" />
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading billing information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main className="dashboard-main">
-      <div className="main-header">
-        <h1 className="page-title">Inventory</h1>
-      </div>
-      
-      <div className="inventory-content">
-        <div className="inventory-section">
-          <h2 className="section-title">Jobs</h2>
-          
-          <div className="job-packages">
-            {jobPackages.map((jobPackage) => (
-              <div key={jobPackage.id} className="job-package-card">
-                <div className="package-info">
-                  <div className="package-header">
-                    <div className="package-icon">
-                      {jobPackage.icon}
-                    </div>
-                    <div className="package-details">
-                      <h3 className="package-title">{jobPackage.type}</h3>
-                      <p className="package-description">{jobPackage.description}</p>
-                    </div>
+    <div className="billing-page">
+      <PageHeader 
+        title="Billing & Packages"
+        subtitle="Manage your job posting packages and billing information"
+      />
+
+      {error && (
+        <div className="error-banner">
+          <span className="error-icon">⚠️</span>
+          <span>{error}</span>
+          <button onClick={loadBillingData} className="retry-btn">Retry</button>
+        </div>
+      )}
+
+      {/* Current Packages */}
+      <div className="billing-section">
+        <h2 className="section-title">Your Current Packages</h2>
+        {userPackages.length > 0 ? (
+          <div className="current-packages">
+            {userPackages.map((pkg) => (
+              <div key={pkg.id} className="current-package-card">
+                <div className="package-header">
+                  <h3 className="package-name">{pkg.packageName}</h3>
+                  <span className={`package-status ${pkg.status}`}>
+                    {pkg.status.toUpperCase()}
+                  </span>
+                </div>
+                
+                <div className="package-usage">
+                  <div className="usage-item">
+                    <span className="usage-label">Job Postings</span>
+                    <span className="usage-value">
+                      {pkg.jobPostingsRemaining} / {pkg.jobPostingsTotal} remaining
+                    </span>
                   </div>
                   
-                  <div className="package-quantity">
-                    <span className="quantity-number">{jobPackage.quantity}</span>
-                    <span className="quantity-label">available</span>
+                  <div className="usage-progress">
+                    <div 
+                      className="usage-bar"
+                      style={{
+                        width: `${(pkg.jobPostingsRemaining / pkg.jobPostingsTotal) * 100}%`
+                      }}
+                    ></div>
                   </div>
                 </div>
                 
-                <div className="package-actions">
+                <div className="package-footer">
+                  <span className="expiry-date">
+                    Expires: {new Date(pkg.expiryDate).toLocaleDateString()}
+                  </span>
                   <button 
-                    className="post-job-btn"
-                    onClick={() => handlePostJob(jobPackage.type)}
-                    disabled={jobPackage.quantity === 0}
+                    className="renew-btn"
+                    onClick={() => handleRenewPackage(pkg)}
                   >
-                    <span className="plus-icon">+</span>
-                    Post job
-                  </button>
-                  
-                  <button 
-                    className={`buy-package-btn ${getPackageTypeClass(jobPackage.type)}`}
-                    onClick={() => handleBuyPackage(jobPackage.type)}
-                  >
-                    {getBuyButtonText(jobPackage.type)}
+                    Renew Package
                   </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-        
-        {/* Future sections can be added here */}
-        {/* 
-        <div className="inventory-section">
-          <h2 className="section-title">Credits</h2>
-          // Credits section content
-        </div>
-        
-        <div className="inventory-section">
-          <h2 className="section-title">Add-ons</h2>
-          // Add-ons section content
-        </div>
-        */}
+        ) : (
+          <div className="no-packages">
+            <div className="empty-state">
+              <span className="empty-icon">📦</span>
+              <h3>No active packages</h3>
+              <p>Purchase a package below to start posting jobs</p>
+            </div>
+          </div>
+        )}
       </div>
-    </main>
+
+      {/* Available Packages */}
+      <div className="billing-section">
+        <h2 className="section-title">Available Packages</h2>
+        <div className="packages-grid">
+          {packages.map((pkg) => (
+            <div key={pkg.id} className="package-card">
+              <div className="package-header">
+                <h3 className="package-name">{pkg.name}</h3>
+                <div className="package-price">
+                  <span className="price-amount">${pkg.price}</span>
+                  <span className="price-period">/month</span>
+                </div>
+              </div>
+              
+              <div className="package-content">
+                <p className="package-description">{pkg.description}</p>
+                
+                <div className="package-features">
+                  <div className="feature-item">
+                    <span className="feature-icon">📋</span>
+                    <span>
+                      {pkg.jobPostings === -1 ? 'Unlimited' : pkg.jobPostings} job postings
+                    </span>
+                  </div>
+                  
+                  {pkg.featured && (
+                    <div className="feature-item">
+                      <span className="feature-icon">⭐</span>
+                      <span>Featured job listings</span>
+                    </div>
+                  )}
+                  
+                  <div className="feature-item">
+                    <span className="feature-icon">📊</span>
+                    <span>Application analytics</span>
+                  </div>
+                  
+                  <div className="feature-item">
+                    <span className="feature-icon">💬</span>
+                    <span>Email support</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="package-footer">
+                <button 
+                  className="purchase-btn"
+                  onClick={() => handlePurchasePackage(pkg)}
+                >
+                  Purchase Package
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Billing History */}
+      <div className="billing-section">
+        <h2 className="section-title">Billing History</h2>
+        <div className="billing-history">
+          <div className="history-item">
+            <div className="history-date">Dec 20, 2024</div>
+            <div className="history-description">Professional Package - Monthly</div>
+            <div className="history-amount">$299.00</div>
+            <div className="history-status success">Paid</div>
+          </div>
+          
+          <div className="history-item">
+            <div className="history-date">Nov 20, 2024</div>
+            <div className="history-description">Professional Package - Monthly</div>
+            <div className="history-amount">$299.00</div>
+            <div className="history-status success">Paid</div>
+          </div>
+          
+          <div className="coming-soon">
+            <p>💳 Payment history integration coming soon</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default Inventory;
+export default BillingPage;

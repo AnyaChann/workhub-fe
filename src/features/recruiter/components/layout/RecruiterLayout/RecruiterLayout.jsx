@@ -4,32 +4,35 @@ import { useAuth } from '../../../../../core/contexts/AuthContext';
 import ROUTES from '../../../../../core/routing/routeConstants';
 import './RecruiterLayout.css';
 
-// ✅ Fixed Layout Components - Use renamed components
+// Layout Components
 import RecruiterHeader from '../RecruiterHeader/RecruiterHeader';
 import RecruiterSidebar from '../RecruiterSidebar/RecruiterSidebar';
 
-// ✅ Fixed Page Components - Use new page structure
+// Page Components
 import ActiveJobsPage from '../../../pages/Jobs/ActiveJobs/ActiveJobsPage';
 import DraftJobsPage from '../../../pages/Jobs/DraftJobs/DraftJobsPage';
 import ExpiredJobsPage from '../../../pages/Jobs/ExpiredJobs/ExpiredJobsPage';
 import CreateJobPage from '../../../pages/Jobs/CreateJob/CreateJobPage';
 
-// ✅ Fixed Account Pages - Use new account structure
+// Account Pages
 import AccountSettingsPage from '../../../pages/Account/Settings/AccountSettingsPage';
 import UserProfilePage from '../../../pages/Account/Profile/UserProfilePage';
 import TeamManagementPage from '../../../pages/Account/Team/TeamManagementPage';
 import BillingPage from '../../../pages/Account/Billing/BillingPage';
 
-// ✅ Other Pages
+// Other Pages
 import CandidatesPage from '../../../pages/Candidates/CandidatesPage';
 import CompanyProfilePage from '../../../pages/Company/CompanyProfilePage';
 import AnalyticsPage from '../../../pages/Analytics/AnalyticsPage';
 
-// ✅ Shared Components
+// Shared Components
 import SupportButton from '../../../../../shared/components/SupportButton/SupportButton';
 
 const RecruiterLayout = () => {
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isRecruiter, userRole } = useAuth();
@@ -48,7 +51,6 @@ const RecruiterLayout = () => {
     }
   }, [isRecruiter, navigate]);
 
-  // ✅ Fixed function name: getCurrentTab → getCurrentPage
   const getCurrentPage = () => {
     const path = location.pathname;
     
@@ -71,31 +73,46 @@ const RecruiterLayout = () => {
 
   const currentPage = getCurrentPage();
 
+  // ✅ Enhanced modal handlers
   const handleCreateJob = () => {
     navigate(ROUTES.RECRUITER.JOBS.CREATE);
   };
 
   const handleCreateJobModal = () => {
     setShowCreateJobModal(true);
+    setError(null);
   };
 
   const handleCloseCreateJob = () => {
     setShowCreateJobModal(false);
+    setError(null);
     navigate(ROUTES.RECRUITER.JOBS.ACTIVE);
   };
 
-  const handleSaveJob = (jobData) => {
-    console.log('💾 Job saved:', jobData);
-    setShowCreateJobModal(false);
-    
-    if (jobData.status === 'draft') {
-      navigate(ROUTES.RECRUITER.JOBS.DRAFTS);
-    } else {
-      navigate(ROUTES.RECRUITER.JOBS.ACTIVE);
+  const handleSaveJob = async (jobData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log('💾 Job saved:', jobData);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setShowCreateJobModal(false);
+      
+      if (jobData.status === 'draft') {
+        navigate(ROUTES.RECRUITER.JOBS.DRAFTS);
+      } else {
+        navigate(ROUTES.RECRUITER.JOBS.ACTIVE);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to save job');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // ✅ Fixed function name: handleTabChange → handlePageChange
   const handlePageChange = (page) => {
     const pageRoutes = {
       'active-jobs': ROUTES.RECRUITER.JOBS.ACTIVE,
@@ -127,32 +144,85 @@ const RecruiterLayout = () => {
     navigate(ROUTES.RECRUITER.JOBS.CREATE, { state: { jobData } });
   };
 
+  // ✅ Modal keyboard handler
+  const handleModalKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      handleCloseCreateJob();
+    }
+  };
+
+  // ✅ Modal click outside handler
+  const handleModalOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleCloseCreateJob();
+    }
+  };
+
   if (!user) {
-    return null; // ProtectedRoute should handle this
+    return (
+      <div className="content-loading">
+        <div className="spinner"></div>
+        <p>Loading user...</p>
+      </div>
+    );
   }
 
   return (
     <div className="recruiter-layout">
-      {/* Create Job Modal */}
+      {/* ✅ Enhanced Create Job Modal */}
       {showCreateJobModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <CreateJobPage 
-              onClose={() => setShowCreateJobModal(false)}
-              onSave={handleSaveJob}
-              isModal={true}
-            />
+        <div 
+          className="modal-overlay"
+          onClick={handleModalOverlayClick}
+          onKeyDown={handleModalKeyDown}
+          tabIndex={-1}
+        >
+          <div className="modal-content" tabIndex={0}>
+            {/* Close Button */}
+            <button 
+              className="modal-close"
+              onClick={handleCloseCreateJob}
+              aria-label="Close modal"
+              title="Close (Esc)"
+            >
+              ✕
+            </button>
+            
+            {/* Modal Body */}
+            <div className="modal-body">
+              {error ? (
+                <div className="content-error">
+                  <div className="error-icon">⚠️</div>
+                  <h3 className="error-title">Error</h3>
+                  <p className="error-message">{error}</p>
+                  <button 
+                    className="retry-button"
+                    onClick={() => setError(null)}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <CreateJobPage 
+                  onClose={handleCloseCreateJob}
+                  onSave={handleSaveJob}
+                  isModal={true}
+                  isLoading={isLoading}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ✅ Use renamed components */}
+      {/* Header */}
       <RecruiterHeader 
         onNavigate={handlePageChange}
         onCreateJob={handleCreateJobModal}
         currentPage={currentPage}
       />
       
+      {/* Main Layout Content */}
       <div className="layout-content">
         <RecruiterSidebar 
           selectedPage={currentPage} 
@@ -161,70 +231,76 @@ const RecruiterLayout = () => {
         />
         
         <main className="main-content">
-          <Routes>
-            {/* Default redirect to active jobs */}
-            <Route 
-              index
-              element={<Navigate to="jobs/active" replace />} 
-            />
-            
-            {/* ✅ Job Management Routes - Use new page components */}
-            <Route 
-              path="jobs/active" 
-              element={<ActiveJobsPage onCreateJob={handleCreateJob} />} 
-            />
-            <Route 
-              path="jobs/drafts" 
-              element={
-                <DraftJobsPage 
-                  onCreateJob={handleCreateJob}
-                  onContinuePosting={handleContinuePosting}
-                />
-              } 
-            />
-            <Route 
-              path="jobs/expired" 
-              element={<ExpiredJobsPage onCreateJob={handleCreateJob} />} 
-            />
-            <Route 
-              path="jobs/create" 
-              element={
-                <CreateJobPage 
-                  onClose={handleCloseCreateJob}
-                  onSave={handleSaveJob}
-                />
-              } 
-            />
-            
-            {/* ✅ Talent Management */}
-            <Route path="candidates" element={<CandidatesPage />} />
-            
-            {/* ✅ Business Management */}
-            <Route path="company" element={<CompanyProfilePage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            
-            {/* ✅ Account Management Routes - Use new page structure */}
-            <Route path="account" element={<AccountSettingsPage />} />
-            <Route path="account/settings" element={<AccountSettingsPage />} />
-            <Route path="account/profile" element={<UserProfilePage />} />
-            <Route path="account/team" element={<TeamManagementPage />} />
-            <Route path="account/billing" element={<BillingPage />} />
-            
-            {/* Fallback redirect */}
-            <Route 
-              path="*" 
-              element={<Navigate to="jobs/active" replace />} 
-            />
-          </Routes>
+          <div className="page-container">
+            <Routes>
+              {/* Default redirect to active jobs */}
+              <Route 
+                index
+                element={<Navigate to="jobs/active" replace />} 
+              />
+              
+              {/* Job Management Routes */}
+              <Route 
+                path="jobs/active" 
+                element={<ActiveJobsPage onCreateJob={handleCreateJob} />} 
+              />
+              <Route 
+                path="jobs/drafts" 
+                element={
+                  <DraftJobsPage 
+                    onCreateJob={handleCreateJob}
+                    onContinuePosting={handleContinuePosting}
+                  />
+                } 
+              />
+              <Route 
+                path="jobs/expired" 
+                element={<ExpiredJobsPage onCreateJob={handleCreateJob} />} 
+              />
+              <Route 
+                path="jobs/create" 
+                element={
+                  <CreateJobPage 
+                    onClose={handleCloseCreateJob}
+                    onSave={handleSaveJob}
+                  />
+                } 
+              />
+              
+              {/* Talent Management */}
+              <Route path="candidates" element={<CandidatesPage />} />
+              
+              {/* Business Management */}
+              <Route path="company" element={<CompanyProfilePage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              
+              {/* Account Management Routes */}
+              <Route path="account" element={<AccountSettingsPage />} />
+              <Route path="account/settings" element={<AccountSettingsPage />} />
+              <Route path="account/profile" element={<UserProfilePage />} />
+              <Route path="account/team" element={<TeamManagementPage />} />
+              <Route path="account/billing" element={<BillingPage />} />
+              
+              {/* Fallback redirect */}
+              <Route 
+                path="*" 
+                element={<Navigate to="jobs/active" replace />} 
+              />
+            </Routes>
+          </div>
         </main>
       </div>
 
+      {/* Support Button */}
       <SupportButton />
       
       {/* Debug info */}
       {process.env.NODE_ENV === 'development' && (
         <div className="debug-info">
-          Path: {location.pathname} | Page: {currentPage} | Role: {userRole}
+          <strong>Path:</strong> {location.pathname}<br />
+          <strong>Page:</strong> {currentPage}<br />
+          <strong>Role:</strong> {userRole}<br />
+          <strong>Modal:</strong> {showCreateJobModal ? 'Open' : 'Closed'}
         </div>
       )}
     </div>

@@ -1,324 +1,351 @@
-.inventory-content {
-  background-color: #f8f9fa;
-  min-height: calc(100vh - 140px);
-  padding: 2rem;
+.billing-page {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.inventory-section {
-  margin-bottom: 3rem;
-}
-
-.inventory-section .section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
   margin-bottom: 1.5rem;
 }
 
-.job-packages {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.retry-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
 }
 
-.job-package-card {
-  background: white;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.billing-section {
+  margin-bottom: 3rem;
 }
 
-.job-package-card:hover {
-  border-color: #00d4aa;
-  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.1);
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
 }
 
-.package-info {
-  display: flex;
-  align-items: center;
+/* Current Packages */
+.current-packages {
+  display: grid;
   gap: 1.5rem;
-  flex: 1;
+}
+
+.current-package-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .package-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  flex: 1;
-}
-
-.package-icon {
-  width: 48px;
-  height: 48px;
-  background-color: #f0f8f6;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  border: 1px solid #e0f2f1;
-}
-
-.package-details {
-  flex: 1;
-}
-
-.package-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 0.25rem 0;
-}
-
-.package-description {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.package-quantity {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px;
-  padding: 0 1rem;
-}
-
-.quantity-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #333;
-  line-height: 1;
-}
-
-.quantity-label {
-  font-size: 0.8rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 0.25rem;
-}
-
-.package-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.inventory-section .post-job-btn {
-  background: white;
-  border: 2px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #666;
-  min-width: 120px;
-  justify-content: center;
-}
-
-.inventory-section .post-job-btn:hover:not(:disabled) {
-  border-color: #00d4aa;
-  background-color: #f8fffe;
-  color: #00d4aa;
-}
-
-.inventory-section .post-job-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: #f5f5f5;
-}
-
-.plus-icon {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.buy-package-btn {
-  border: none;
-  border-radius: 8px;
-  padding: 12px 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: white;
-  min-width: 120px;
-}
-
-.buy-package-btn.standard-jobs {
-  background-color: #00d4aa;
-}
-
-.buy-package-btn.standard-jobs:hover {
-  background-color: #00c49a;
-  transform: translateY(-1px);
-}
-
-.buy-package-btn.plus-jobs {
-  background-color: #00d4aa;
-}
-
-.buy-package-btn.plus-jobs:hover {
-  background-color: #00c49a;
-  transform: translateY(-1px);
-}
-
-.buy-package-btn.premium-jobs {
-  background-color: #00d4aa;
-}
-
-.buy-package-btn.premium-jobs:hover {
-  background-color: #00c49a;
-  transform: translateY(-1px);
-}
-
-/* Empty state when no packages */
-.empty-inventory {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
-}
-
-.empty-icon {
-  font-size: 4rem;
   margin-bottom: 1rem;
-  opacity: 0.5;
 }
 
-.empty-title {
+.package-name {
   font-size: 1.25rem;
   font-weight: 600;
   color: #333;
+  margin: 0;
+}
+
+.package-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.package-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.package-usage {
+  margin-bottom: 1rem;
+}
+
+.usage-item {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 0.5rem;
 }
 
-.empty-description {
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
+.usage-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.usage-value {
+  color: #333;
+  font-weight: 600;
+}
+
+.usage-progress {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.usage-bar {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.package-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expiry-date {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.renew-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.renew-btn:hover {
+  background: #2563eb;
+}
+
+/* Available Packages */
+.packages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.package-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.package-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.package-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.price-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.price-period {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.package-description {
+  color: #666;
+  margin-bottom: 1.5rem;
   line-height: 1.5;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .job-package-card {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1.5rem;
-  }
-  
-  .package-info {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  
-  .package-quantity {
-    flex-direction: row;
-    justify-content: center;
-    gap: 0.5rem;
-    min-width: auto;
-    padding: 0;
-  }
-  
-  .quantity-number {
-    font-size: 1.5rem;
-  }
-  
-  .package-actions {
-    justify-content: center;
-  }
+.package-features {
+  margin-bottom: 1.5rem;
 }
 
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.feature-icon {
+  font-size: 1rem;
+}
+
+.purchase-btn {
+  width: 100%;
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.purchase-btn:hover {
+  background: #059669;
+}
+
+/* No Packages State */
+.no-packages {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 3rem;
+  text-align: center;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty-icon {
+  font-size: 3rem;
+}
+
+.empty-state h3 {
+  color: #333;
+  margin: 0;
+}
+
+.empty-state p {
+  color: #666;
+  margin: 0;
+}
+
+/* Billing History */
+.billing-history {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 120px 1fr 100px 80px;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-date {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.history-description {
+  color: #333;
+  font-weight: 500;
+}
+
+.history-amount {
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+}
+
+.history-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.history-status.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.coming-soon {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .inventory-content {
-    padding: 1.5rem;
+  .billing-page {
+    padding: 1rem;
   }
   
-  .job-package-card {
-    padding: 1.25rem;
+  .packages-grid {
+    grid-template-columns: 1fr;
   }
   
-  .package-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.75rem;
-  }
-  
-  .package-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.25rem;
-  }
-  
-  .package-title {
-    font-size: 1rem;
-  }
-  
-  .package-description {
-    font-size: 0.85rem;
-  }
-  
-  .package-actions {
-    flex-direction: column;
+  .history-item {
+    grid-template-columns: 1fr;
     gap: 0.5rem;
+    text-align: left;
   }
   
-  .inventory-section .post-job-btn,
-  .buy-package-btn {
-    width: 100%;
+  .history-amount {
+    text-align: left;
   }
-}
-
-@media (max-width: 480px) {
-  .inventory-content {
-    padding: 1rem;
-  }
-  
-  .job-package-card {
-    padding: 1rem;
-  }
-  
-  .package-info {
-    gap: 0.75rem;
-  }
-  
-  .section-title {
-    font-size: 1.125rem;
-  }
-}
-
-/* Animation */
-.job-package-card {
-  animation: fadeInUp 0.3s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Focus states for accessibility */
-.inventory-section .post-job-btn:focus,
-.buy-package-btn:focus {
-  outline: 2px solid #00d4aa;
-  outline-offset: 2px;
 }
