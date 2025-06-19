@@ -58,29 +58,39 @@ class AuthService {
       this.authState.isLoading = true;
       console.log('🔐 AuthService: Starting login for:', credentials.email);
 
-      // Validate credentials
+      // ✅ Enhanced validation with detailed logging
       if (!this.validateCredentials(credentials)) {
         throw new Error('Invalid credentials format');
       }
 
+      // ✅ Extract and clean credentials
+      const cleanCredentials = {
+        email: credentials.email.trim().toLowerCase(),
+        password: credentials.password.trim()
+      };
+
+      console.log('📧 Clean email:', cleanCredentials.email);
+      console.log('🔑 Password length:', cleanCredentials.password.length);
+
       // Clear any existing auth data
       this.clearStorage();
 
-      // Build request
+      // Build request - Use clean credentials
       const params = new URLSearchParams({
-        email: credentials.email.trim(),
-        password: credentials.password
+        email: cleanCredentials.email,
+        password: cleanCredentials.password
       });
 
       const loginUrl = `/recruiter/login?${params.toString()}`;
       console.log('📡 AuthService: Making login request...');
+      console.log('🎯 Login URL:', loginUrl);
 
       // Make API call
       const response = await api.post(loginUrl, {});
       console.log('📨 AuthService: Received response:', typeof response);
 
-      // Process response
-      const { token, user } = this.processLoginResponse(response, credentials);
+      // Process response - pass original credentials for fallback
+      const { token, user } = this.processLoginResponse(response, cleanCredentials);
 
       // Store auth data with atomic operation
       const stored = this.storeAuthData(token, user);
@@ -427,56 +437,56 @@ class AuthService {
   async forgotPassword(email) {
     try {
       console.log('📧 AuthService: Starting forgot password for:', email);
-  
+
       // ✅ Validate email
       if (!email || !email.trim()) {
         throw new Error('Email is required');
       }
-  
+
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
         throw new Error('Please enter a valid email address');
       }
-  
+
       // ✅ Build request with email as query parameter
       const params = new URLSearchParams({
         email: email.trim().toLowerCase()
       });
-  
+
       const forgotPasswordUrl = `/forgot-password?${params.toString()}`;
-      
+
       console.log('📡 AuthService: Making forgot password request...');
       console.log('🎯 Endpoint:', forgotPasswordUrl);
       console.log('📧 Email:', email.trim().toLowerCase());
-  
+
       // ✅ Make forgot password request
       const response = await api.post(forgotPasswordUrl, {}, {
         headers: {
           'Content-Type': 'application/json;charset=UTF-8'
         }
       });
-  
+
       console.log('📨 AuthService: Forgot password response:', response);
-  
+
       // ✅ Handle response
       let result = {
         success: true,
         message: 'Password reset email sent successfully',
         email: email.trim().toLowerCase()
       };
-  
+
       if (typeof response === 'string') {
         result.message = response || result.message;
       } else if (response && typeof response === 'object') {
         result.message = response.message || response.data?.message || result.message;
         result.data = response.data || response;
       }
-  
+
       console.log('✅ AuthService: Forgot password successful');
       return result;
-  
+
     } catch (error) {
       console.error('❌ AuthService: Forgot password failed:', error);
-      
+
       // ✅ Handle specific error types
       if (error.response?.status === 404) {
         throw new Error('No account found with this email address');
@@ -506,25 +516,25 @@ class AuthService {
       console.log('🔑 AuthService: Starting password reset...');
       console.log('🔍 Token length:', token?.length);
       console.log('🔍 Has password:', !!newPassword);
-  
+
       // ✅ Validate inputs
       if (!token || !token.trim()) {
         throw new Error('Reset token is required');
       }
-  
+
       if (!newPassword || !newPassword.trim()) {
         throw new Error('New password is required');
       }
-  
+
       if (newPassword.length < 8) {
         throw new Error('Password must be at least 8 characters');
       }
-  
+
       // ✅ Validate token format
       if (!this.isValidTokenFormat(token.trim())) {
         throw new Error('Invalid reset token format');
       }
-  
+
       // ✅ Check if token is expired
       try {
         const decoded = jwtUtils.decode(token);
@@ -538,46 +548,46 @@ class AuthService {
         console.warn('⚠️ Could not decode reset token:', decodeError);
         // Continue anyway - let backend validate
       }
-  
+
       // ✅ Build request with token and newPassword as query parameters
       const params = new URLSearchParams({
         token: token.trim(),
         newPassword: newPassword.trim()
       });
-  
+
       const resetPasswordUrl = `/reset-password?${params.toString()}`;
-      
+
       console.log('📡 AuthService: Making reset password request...');
       console.log('🎯 Endpoint:', resetPasswordUrl);
-  
+
       // ✅ Make reset password request
       const response = await api.post(resetPasswordUrl, {}, {
         headers: {
           'Content-Type': 'application/json;charset=UTF-8'
         }
       });
-  
+
       console.log('📨 AuthService: Reset password response:', response);
-  
+
       // ✅ Handle response
       let result = {
         success: true,
         message: 'Password reset successfully'
       };
-  
+
       if (typeof response === 'string') {
         result.message = response || result.message;
       } else if (response && typeof response === 'object') {
         result.message = response.message || response.data?.message || result.message;
         result.data = response.data || response;
       }
-  
+
       console.log('✅ AuthService: Password reset successful');
       return result;
-  
+
     } catch (error) {
       console.error('❌ AuthService: Password reset failed:', error);
-      
+
       // ✅ Handle specific error types
       if (error.response?.status === 400) {
         const errorData = error.response.data;
@@ -661,15 +671,39 @@ class AuthService {
   // ========== PRIVATE METHODS ==========
 
   validateCredentials(credentials) {
-    if (!credentials.email || !credentials.password) {
+    console.log('🔍 AuthService: Validating credentials:', {
+      hasEmail: !!credentials.email,
+      hasPassword: !!credentials.password,
+      emailValid: credentials.email?.includes('@'),
+      passwordLength: credentials.password?.length || 0
+    });
+
+    if (!credentials || typeof credentials !== 'object') {
+      console.error('❌ Credentials must be an object');
       return false;
     }
-    if (!credentials.email.includes('@')) {
+
+    if (!credentials.email || typeof credentials.email !== 'string') {
+      console.error('❌ Email is required and must be a string');
       return false;
     }
+
+    if (!credentials.password || typeof credentials.password !== 'string') {
+      console.error('❌ Password is required and must be a string');
+      return false;
+    }
+
+    if (!credentials.email.trim().includes('@')) {
+      console.error('❌ Email must contain @ symbol');
+      return false;
+    }
+
     if (credentials.password.length < 6) {
+      console.error('❌ Password must be at least 6 characters');
       return false;
     }
+
+    console.log('✅ Credentials validation passed');
     return true;
   }
 

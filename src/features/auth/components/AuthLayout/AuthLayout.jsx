@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './AuthLayout.css';
-import AuthDebug from '../../../../shared/components/AuthDebug/AuthDebug';
+// import AuthDebug from '../../../../shared/components/AuthDebug/AuthDebug';
+import AuthTestPanel from '../../../../shared/components/AuthTestPanel/AuthTestPanel';
 
 const AuthLayout = ({ 
   children, 
@@ -17,10 +18,6 @@ const AuthLayout = ({
           <Link to="/" className="logo">WorkHub®</Link>
         </div>
 
-        {process.env.NODE_ENV === 'development' && (
-          <AuthDebug />
-        )}
-        
         <div className="auth-form-container">
           <h1 className="auth-title">{title}</h1>
           {subtitle && <p className="auth-subtitle">{subtitle}</p>}

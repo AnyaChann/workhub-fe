@@ -1,5 +1,5 @@
-import React, { useState, useEffect, navigate } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthFormLayout from '../../components/AuthFormLayout/AuthFormLayout';
 import FormField from '../../components/FormField/FormField';
 import PasswordCriteria from '../../components/PasswordCriteria/PasswordCriteria';
@@ -10,6 +10,7 @@ import './Register.css';
 
 const Register = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [registrationResult, setRegistrationResult] = useState(null);
 

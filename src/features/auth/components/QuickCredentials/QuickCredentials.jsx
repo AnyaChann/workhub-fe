@@ -1,8 +1,7 @@
 import React from 'react';
 import './QuickCredentials.css';
 
-const QuickCredentials = ({ onFillCredentials, showApiTest, onToggleApiTest }) => {
-  // ✅ Updated test credentials based on your curl example
+const QuickCredentials = ({ onFillCredentials }) => {
   const testCredentials = [
     {
       label: 'Test Recruiter',
@@ -32,17 +31,14 @@ const QuickCredentials = ({ onFillCredentials, showApiTest, onToggleApiTest }) =
     onFillCredentials(email, password);
   };
 
+  if (process.env.NODE_ENV !== 'development') {
+    return null;
+  }
+
   return (
     <div className="quick-credentials">
       <div className="quick-credentials-header">
         <span className="quick-credentials-title">🚀 Quick Test Login</span>
-        <button 
-          className="api-test-toggle"
-          onClick={onToggleApiTest}
-          title={showApiTest ? 'Hide API Test' : 'Show API Test'}
-        >
-          {showApiTest ? '🔧 Hide API Test' : '🔧 API Test'}
-        </button>
       </div>
       
       <div className="quick-credentials-grid">
@@ -58,12 +54,6 @@ const QuickCredentials = ({ onFillCredentials, showApiTest, onToggleApiTest }) =
             <div className="credential-status">Status: {cred.status}</div>
           </button>
         ))}
-      </div>
-      
-      <div className="api-info">
-        <small>
-          � API Format: POST /recruiter/login?email=...&password=... (Query Parameters)
-        </small>
       </div>
     </div>
   );

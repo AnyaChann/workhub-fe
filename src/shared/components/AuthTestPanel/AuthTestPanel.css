@@ -1,0 +1,489 @@
+.auth-test-panel {
+  position: fixed;
+  width: 450px;
+  max-height: calc(100vh - 40px);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: all 0.3s ease;
+  /* border: 2px solid #ff5a5a; */
+  user-select: none; /* Prevent text selection during drag */
+}
+
+/* ✅ Minimized state */
+.auth-test-panel.minimized {
+  width: 300px;
+  height: auto;
+}
+
+.auth-test-panel.minimized .test-panel-content {
+  display: none;
+}
+
+/* ✅ Hidden state */
+.auth-test-panel.hidden {
+  width: 50px;
+  height: 40px;
+}
+
+.auth-test-panel.hidden .test-panel-content {
+  display: none;
+}
+
+.auth-test-panel.hidden .test-panel-header {
+  padding: 0.5rem;
+}
+
+.auth-test-panel.hidden .test-panel-title {
+  display: none;
+}
+
+.auth-test-panel.hidden .header-left {
+  justify-content: center;
+  width: 100%;
+}
+
+.auth-test-panel.hidden .header-right {
+  display: none;
+}
+
+/* ✅ Dragging state */
+.auth-test-panel.dragging {
+  cursor: grabbing;
+  transform: rotate(1deg);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+}
+
+.test-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #ff5a5a;
+  color: white;
+  border-radius: 10px 10px;
+  font-size: 0.9rem;
+  cursor: grab; /* ✅ Show grab cursor */
+  position: relative;
+}
+
+.test-panel-header:hover {
+  background: #ff4444;
+}
+
+.test-panel-header:active {
+  cursor: grabbing;
+}
+
+/* ✅ Header layout */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.test-panel-title {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.85rem;
+  margin: 0;
+  flex-grow: 1;
+  text-align: center;
+  pointer-events: none; /* ✅ Prevent interference with dragging */
+}
+
+.drag-hint {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ✅ Button styles */
+.auth-test-panel .toggle-btn,
+.auth-test-panel .minimize-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-test-panel .toggle-btn:hover,
+.auth-test-panel .minimize-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.test-panel-content {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* ✅ Scrollbar styling */
+.test-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.test-panel-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.test-panel-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.test-panel-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Auth Monitor */
+.auth-monitor {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+
+.auth-monitor h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.monitor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.monitor-item .label {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.monitor-item .value {
+  font-weight: bold;
+}
+
+.monitor-item .value.success {
+  color: #28a745;
+}
+
+.monitor-item .value.error {
+  color: #dc3545;
+}
+
+.monitor-item .value.timestamp {
+  color: #6c757d;
+  font-size: 0.7rem;
+}
+
+/* Test Tabs */
+.test-tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  gap: 2px;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 1rem; /* ✅ Larger for emoji */
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab:hover {
+  color: #007bff;
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
+  font-weight: bold;
+}
+
+/* Test Sections */
+.test-section {
+  margin-bottom: 1rem;
+}
+
+.test-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.test-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.test-btn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #007bff;
+  background: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.test-btn:hover:not(:disabled) {
+  background: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.test-btn:active {
+  transform: translateY(0);
+}
+
+.test-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.test-btn.logout {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.test-btn.logout:hover:not(:disabled) {
+  background: #c82333;
+  border-color: #bd2130;
+}
+
+.test-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.test-input {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.test-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Test Results */
+.test-results {
+  margin-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  padding-top: 1rem;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.results-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.clear-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.2s;
+}
+
+.clear-btn:hover {
+  background: #5a6268;
+}
+
+.results-list {
+  max-height: 200px; /* ✅ Limit height to prevent panel from being too tall */
+  overflow-y: auto;
+}
+
+.result-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.result-item.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.result-item.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.result-name {
+  font-weight: bold;
+  color: #495057;
+  font-size: 0.7rem;
+}
+
+.result-status {
+  font-size: 0.9rem;
+}
+
+.result-time {
+  color: #6c757d;
+  font-size: 0.65rem;
+}
+
+.result-message {
+  color: #495057;
+  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.result-error {
+  color: #721c24;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.result-data {
+  margin-top: 0.25rem;
+}
+
+.result-data summary {
+  cursor: pointer;
+  color: #007bff;
+  font-weight: 500;
+  font-size: 0.7rem;
+}
+
+.result-data pre {
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.6rem;
+  overflow-x: auto;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ✅ Responsive - adjust for smaller screens */
+@media (max-width: 768px) {
+  .auth-test-panel {
+    width: calc(100vw - 40px);
+    max-width: 350px;
+  }
+  
+  .auth-test-panel.minimized {
+    width: 250px;
+  }
+  
+  .monitor-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .test-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .tab {
+    min-width: 25%;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-test-panel {
+    width: calc(100vw - 20px);
+    left: 10px !important;
+    right: 10px !important;
+  }
+}
