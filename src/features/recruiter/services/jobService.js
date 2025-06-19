@@ -9,16 +9,16 @@ export const jobService = {
         token: localStorage.getItem('accessToken') ? 'Present' : 'Missing',
         user: JSON.parse(localStorage.getItem('user') || '{}')
       });
-      
+
       const response = await api.get('/jobs/recruiter');
-      
+
       console.log('📥 Raw API response:', response);
       console.log('📊 Response type:', typeof response);
       console.log('📊 Response keys:', Object.keys(response || {}));
-      
+
       // ✅ Handle API response - should be array of jobs
       let jobs = [];
-      
+
       if (Array.isArray(response)) {
         jobs = response;
       } else if (response && Array.isArray(response.data)) {
@@ -30,9 +30,9 @@ export const jobService = {
         console.warn('⚠️ Unexpected response format:', response);
         jobs = [];
       }
-      
+
       console.log('📋 Jobs array from API:', jobs);
-      
+
       // ✅ Map API response to frontend format based on actual API structure
       const mappedJobs = jobs.map(job => ({
         // ✅ Direct mapping from API response
@@ -43,7 +43,7 @@ export const jobService = {
         salaryRange: job.salaryRange || 'Competitive',
         experience: job.experience || 'Not specified',
         deadline: job.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        
+
         // ✅ Additional fields from API
         companyName: job.companyName || 'Company Name',
         companyLogo: job.companyLogo || null,
@@ -51,17 +51,17 @@ export const jobService = {
         type: job.type || 'Full-time',
         position: job.position || 'Position',
         skills: job.skills || [],
-        
+
         // ✅ Computed fields for frontend
         createdAt: job.createdAt || new Date().toISOString(), // API might not return this
         postAt: job.postAt || 'STANDARD', // Default post type
-        
+
         // ✅ Status derivation based on deadline
         status: deriveJobStatusFromAPI(job),
         isExpired: job.deadline ? new Date(job.deadline) < new Date() : false,
         daysUntilDeadline: job.deadline ? calculateDaysUntilDeadline(job.deadline) : null,
         isRecent: job.createdAt ? isRecentJob(job.createdAt) : true,
-        
+
         // ✅ Display formatting
         displaySalary: formatSalaryRange(job.salaryRange),
         displayLocation: job.location || 'Remote',
@@ -70,18 +70,18 @@ export const jobService = {
         displayCategory: job.category || 'General',
         displayType: job.type || 'Full-time',
         displayPosition: job.position || 'Position',
-        
+
         // ✅ Skills formatting
         skillsList: Array.isArray(job.skills) ? job.skills : [],
         skillsDisplay: Array.isArray(job.skills) ? job.skills.join(', ') : 'No skills specified'
       }));
-      
+
       console.log('✅ Mapped jobs:', mappedJobs);
       return mappedJobs;
-      
+
     } catch (error) {
       console.error('❌ Error fetching recruiter jobs:', error);
-      
+
       // Enhanced error logging
       if (error.response) {
         console.error('📤 Request URL:', error.config?.url);
@@ -89,7 +89,7 @@ export const jobService = {
         console.error('📥 Response status:', error.response.status);
         console.error('📥 Response headers:', error.response.headers);
         console.error('📥 Response data:', error.response.data);
-        
+
         // Handle specific HTTP errors
         switch (error.response.status) {
           case 401:
@@ -120,17 +120,17 @@ export const jobService = {
       } else {
         console.error('⚙️ Request setup error:', error.message);
       }
-      
+
       // Re-throw with more context
       const enhancedError = new Error(
-        error.response?.data?.message || 
+        error.response?.data?.message ||
         error.response?.data?.error ||
-        error.message || 
+        error.message ||
         'Failed to fetch jobs'
       );
       enhancedError.status = error.response?.status;
       enhancedError.originalError = error;
-      
+
       throw enhancedError;
     }
   },
@@ -139,7 +139,7 @@ export const jobService = {
   testConnection: async () => {
     try {
       console.log('🔌 Testing API connection...');
-      
+
       // Test the general jobs endpoint first
       const response = await api.get('/jobs');
       console.log('✅ General jobs API connection successful:', response);
@@ -154,14 +154,14 @@ export const jobService = {
   testRecruiterEndpoint: async () => {
     try {
       console.log('🔌 Testing recruiter jobs endpoint...');
-      
+
       const response = await api.get('/jobs/recruiter');
       console.log('✅ Recruiter jobs endpoint successful:', response);
       return { success: true, data: response };
     } catch (error) {
       console.error('❌ Recruiter endpoint failed:', error);
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: error.message,
         status: error.response?.status,
         data: error.response?.data
@@ -183,7 +183,7 @@ export const jobService = {
           response = await api.get('/user/profile');
         }
       }
-      
+
       console.log('👤 Current user:', response);
       return response;
     } catch (error) {
@@ -192,42 +192,112 @@ export const jobService = {
     }
   },
 
-  // ✅ Create job with API structure
+  // ...existing code...
+
+  // ✅ Update createJob method to match API structure
   createJob: async (jobData) => {
     try {
       console.log('📝 Creating job with data:', jobData);
-      
-      // Map to API expected format
+
+      // ✅ Map to exact API expected format
       const apiPayload = {
         title: jobData.title,
         description: jobData.description,
+        salaryRange: jobData.salaryRange || 'Competitive',
+        experience: jobData.experience || 'Not specified',
         location: jobData.location,
-        salaryRange: jobData.salaryRange,
-        experience: jobData.experience,
         deadline: jobData.deadline,
-        category: jobData.category,
-        type: jobData.type,
-        position: jobData.position,
+        postAt: jobData.postAt || 'standard',
+
+        // ✅ Send nested objects as expected by API
+        category: {
+          id: jobData.category?.id || jobData.categoryId
+        },
+        type: {
+          id: jobData.type?.id || jobData.typeId
+        },
+        position: {
+          id: jobData.position?.id || jobData.positionId
+        },
+
+        // ✅ Skills array
         skills: jobData.skills || []
       };
-      
+
       console.log('📤 API payload:', apiPayload);
-      
+
       const response = await api.post('/jobs', apiPayload);
       console.log('✅ Job created successfully:', response);
-      
+
       return response;
     } catch (error) {
       console.error('❌ Error creating job:', error);
+
+      // Enhanced error handling for create job
+      if (error.response) {
+        console.error('📥 Create job error response:', error.response.data);
+
+        let errorMessage = 'Failed to create job';
+
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Invalid job data provided';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Authentication required. Please log in again.';
+        } else if (error.response.status === 403) {
+          errorMessage = 'You do not have permission to create jobs';
+        } else if (error.response.status === 422) {
+          errorMessage = 'Validation failed. Please check your input data.';
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+
+        const enhancedError = new Error(errorMessage);
+        enhancedError.status = error.response.status;
+        enhancedError.validationErrors = error.response.data?.errors;
+        throw enhancedError;
+      }
+
       throw error;
     }
   },
+
+  // ✅ Add method to get form options
+  getJobFormOptions: async () => {
+    try {
+      console.log('📋 Fetching job form options...');
+
+      // These could be separate API calls in real app
+      const [categoriesRes, typesRes, positionsRes, skillsRes] = await Promise.allSettled([
+        api.get('/categories'),
+        api.get('/job-types'),
+        api.get('/positions'),
+        api.get('/skills')
+      ]);
+
+      return {
+        categories: categoriesRes.status === 'fulfilled' ? categoriesRes.value : [],
+        types: typesRes.status === 'fulfilled' ? typesRes.value : [],
+        positions: positionsRes.status === 'fulfilled' ? positionsRes.value : [],
+        skills: skillsRes.status === 'fulfilled' ? skillsRes.value : []
+      };
+    } catch (error) {
+      console.error('❌ Error fetching form options:', error);
+      // Return default options if API fails
+      return {
+        categories: [],
+        types: [],
+        positions: [],
+        skills: []
+      };
+    }
+  },
+
 
   // ✅ Update job
   updateJob: async (jobId, jobData) => {
     try {
       console.log('✏️ Updating job:', jobId, jobData);
-      
+
       const apiPayload = {
         title: jobData.title,
         description: jobData.description,
@@ -240,10 +310,10 @@ export const jobService = {
         position: jobData.position,
         skills: jobData.skills || []
       };
-      
+
       const response = await api.put(`/jobs/${jobId}`, apiPayload);
       console.log('✅ Job updated successfully:', response);
-      
+
       return response;
     } catch (error) {
       console.error('❌ Error updating job:', error);
@@ -270,17 +340,17 @@ function deriveJobStatusFromAPI(job) {
   try {
     const now = new Date();
     const deadline = job.deadline ? new Date(job.deadline) : null;
-    
+
     // If no deadline, consider it active
     if (!deadline) {
       return 'active';
     }
-    
+
     // If deadline has passed, it's expired
     if (deadline < now) {
       return 'expired';
     }
-    
+
     // Default to active
     return 'active';
   } catch (error) {
@@ -292,7 +362,7 @@ function deriveJobStatusFromAPI(job) {
 function calculateDaysUntilDeadline(deadline) {
   try {
     if (!deadline) return null;
-    
+
     const now = new Date();
     const deadlineDate = new Date(deadline);
     const diffTime = deadlineDate - now;
@@ -307,7 +377,7 @@ function calculateDaysUntilDeadline(deadline) {
 function isRecentJob(createdAt) {
   try {
     if (!createdAt) return false;
-    
+
     const now = new Date();
     const created = new Date(createdAt);
     const diffDays = (now - created) / (1000 * 60 * 60 * 24);
@@ -321,18 +391,18 @@ function isRecentJob(createdAt) {
 function formatSalaryRange(salaryRange) {
   try {
     if (!salaryRange) return 'Competitive';
-    
+
     if (typeof salaryRange === 'string') {
       return salaryRange;
     }
-    
+
     if (typeof salaryRange === 'object') {
       const { min, max, currency = 'USD' } = salaryRange;
       if (min && max) {
         return `${currency} ${min.toLocaleString()} - ${max.toLocaleString()}`;
       }
     }
-    
+
     return salaryRange.toString();
   } catch (error) {
     console.warn('⚠️ Error formatting salary range:', error);
@@ -343,11 +413,11 @@ function formatSalaryRange(salaryRange) {
 function formatExperience(experience) {
   try {
     if (!experience) return 'Not specified';
-    
+
     if (typeof experience === 'number') {
       return `${experience}+ years`;
     }
-    
+
     return experience.toString();
   } catch (error) {
     console.warn('⚠️ Error formatting experience:', error);
