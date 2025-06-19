@@ -16,7 +16,7 @@ export const useAuthSubmit = (type) => {
       setIsLoading(true);
       setError('');
       setMessage('');
-      
+
       console.log('🚀 useAuthSubmit: Starting login process...');
 
       // ✅ Step 1: Check AuthService state before login
@@ -26,7 +26,7 @@ export const useAuthSubmit = (type) => {
       // ✅ Step 2: Call login through AuthContext (which uses AuthService)
       console.log('📊 STEP 2: Calling AuthContext login...');
       const result = await login(credentials);
-      
+
       // ✅ Step 3: Check AuthService state after login
       const afterState = authService.getAuthState();
       console.log('📊 STEP 3: AuthService state AFTER login:', afterState);
@@ -62,14 +62,14 @@ export const useAuthSubmit = (type) => {
 
       // ✅ Step 8: Navigate based on user role
       const userData = finalState.user;
-      const dashboardPath = userData.role?.toLowerCase() === 'recruiter' 
-        ? '/recruiter/dashboard' 
+      const dashboardPath = userData.role?.toLowerCase() === 'recruiter'
+        ? '/recruiter/dashboard'
         : userData.role?.toLowerCase() === 'candidate'
-        ? '/candidate/dashboard'
-        : userData.role?.toLowerCase() === 'admin'
-        ? '/admin/dashboard'
-        : '/dashboard';
-      
+          ? '/candidate/dashboard'
+          : userData.role?.toLowerCase() === 'admin'
+            ? '/admin/dashboard'
+            : '/dashboard';
+
       console.log('📊 STEP 8: Navigation to:', dashboardPath);
       console.log('👤 User role:', userData.role);
 
@@ -84,7 +84,7 @@ export const useAuthSubmit = (type) => {
     } catch (error) {
       console.error('❌ useAuthSubmit: Login failed:', error.message);
       console.error('📊 Final AuthService state on error:', authService.getAuthState());
-      
+
       setError(error.message || 'Login failed');
       throw error;
     } finally {
@@ -93,33 +93,100 @@ export const useAuthSubmit = (type) => {
   };
 
   const submitRegister = async (userData, options = {}) => {
+    let registrationType = 'recruiter'; // Default registration type
     try {
       setIsLoading(true);
       setError('');
       setMessage('');
-      
-      console.log('📝 useAuthSubmit: Starting registration...');
-      
-      // Call AuthService directly for registration
-      const result = await authService.register(userData);
-      
-      setMessage('Registration successful');
-      
-      if (options.onSuccess) {
-        options.onSuccess(result, 'Registration successful');
+
+      // ✅ Determine registration type
+      const registrationType = userData.registrationType || type || 'recruiter';
+
+      console.log(`📝 useAuthSubmit: Starting ${registrationType} registration...`);
+
+      // ✅ Call appropriate AuthService method based on type
+      let result;
+      if (registrationType === 'candidate') {
+        result = await authService.registerCandidate(userData);
+      } else {
+        result = await authService.registerRecruiter(userData);
+      }
+
+      console.log(`✅ useAuthSubmit: ${registrationType} registration result:`, {
+        success: result.success,
+        hasToken: !!result.token,
+        hasUser: !!result.user,
+        requiresVerification: result.requiresVerification,
+        autoLogin: result.autoLogin,
+        userStatus: result.user?.status
+      });
+
+      if (result.success) {
+        const successMsg = result.message || `${registrationType} account created successfully`;
+        setMessage(successMsg);
+
+        if (options.onSuccess) {
+          options.onSuccess(result, successMsg);
+        }
+
+        // ✅ Handle different registration outcomes
+        if (result.autoLogin && result.token && result.user) {
+          // ✅ Auto-login for verified accounts
+          console.log(`🔄 Auto-login verified ${registrationType}...`);
+
+          // Refresh auth context to sync with AuthService
+          refreshAuthState();
+
+          // Navigate to appropriate dashboard
+          const dashboardPath = registrationType === 'recruiter'
+            ? '/recruiter/dashboard'
+            : '/candidate/dashboard';
+
+          setTimeout(() => {
+            console.log(`🎯 Navigating to ${dashboardPath}`);
+            navigate(dashboardPath, { replace: true });
+          }, 1500); // Give user time to see success message
+
+        } else if (result.requiresVerification) {
+          // ✅ Verification required - redirect to verification page
+          console.log('📧 Redirecting to verification flow...');
+
+          setTimeout(() => {
+            navigate('/account/unverified', {
+              state: {
+                message: `Registration successful! Please check your email to verify your ${registrationType} account.`,
+                email: userData.email,
+                type: registrationType,
+                hasToken: !!result.token // Pass token info for debugging
+              }
+            });
+          }, 2000);
+
+        } else {
+          // ✅ Fallback: redirect to login
+          console.log('🔄 Redirecting to login...');
+
+          setTimeout(() => {
+            navigate('/login', {
+              state: {
+                message: `${registrationType} account created! Please sign in to continue.`,
+                email: userData.email
+              }
+            });
+          }, 2000);
+        }
       }
 
       return result;
 
     } catch (error) {
-      console.error('❌ useAuthSubmit: Registration failed:', error);
+      console.error(`❌ useAuthSubmit: ${registrationType || 'user'} registration failed:`, error);
       setError(error.message || 'Registration failed');
       throw error;
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }
   return {
     submitLogin,
     submitRegister,

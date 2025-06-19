@@ -62,221 +62,233 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* ✅ Public routes with lazy loading */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
           <SuspenseWrapper>
             <Home />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.PRICING} 
+      <Route
+        path={ROUTES.PRICING}
         element={
           <SuspenseWrapper>
             <Pricing />
           </SuspenseWrapper>
-        } 
+        }
       />
 
       {/* ✅ Auth routes with lazy loading */}
-      <Route 
-        path={ROUTES.LOGIN} 
+      <Route
+        path={ROUTES.LOGIN}
         element={
           <SuspenseWrapper>
             <Login />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.REGISTER} 
+      <Route
+        path="/register"
         element={
           <SuspenseWrapper>
             <Register />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.FORGOT_PASSWORD} 
+      <Route
+        path="/register/recruiter"
+        element={<Navigate to="/register" replace />}
+      />
+      <Route
+        path="/register/candidate"
+        element={
+          <SuspenseWrapper>
+            <Register />
+          </SuspenseWrapper>
+        }
+      />
+      <Route
+        path={ROUTES.FORGOT_PASSWORD}
         element={
           <SuspenseWrapper>
             <ForgotPassword />
           </SuspenseWrapper>
-        } 
+        }
       />
 
       {/* ✅ Account status routes */}
-      <Route 
-        path={ROUTES.ACCOUNT_STATUS.UNVERIFIED} 
+      <Route
+        path={ROUTES.ACCOUNT_STATUS.UNVERIFIED}
         element={
           <ProtectedRoute>
             <SuspenseWrapper>
               <UnverifiedAccount />
             </SuspenseWrapper>
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.ACCOUNT_STATUS.SUSPENDED} 
+      <Route
+        path={ROUTES.ACCOUNT_STATUS.SUSPENDED}
         element={
           <ProtectedRoute>
             <SuspenseWrapper>
               <SuspendedAccount />
             </SuspenseWrapper>
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.ACCOUNT_STATUS.BANNED} 
+      <Route
+        path={ROUTES.ACCOUNT_STATUS.BANNED}
         element={
           <ProtectedRoute>
             <SuspenseWrapper>
               <BannedAccount />
             </SuspenseWrapper>
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* ✅ Recruiter Dashboard Routes */}
-      <Route 
-        path="/recruiter/dashboard/*" 
+      <Route
+        path="/recruiter/dashboard/*"
         element={
           <RecruiterRoute requireVerified={false}>
             <SuspenseWrapper>
               <RecruiterDashboardLayout />
             </SuspenseWrapper>
           </RecruiterRoute>
-        } 
+        }
       />
-      
+
       {/* ✅ Recruiter redirects with exact paths */}
-      <Route 
-        path="/recruiter/dashboard" 
-        element={<Navigate to={ROUTES.RECRUITER.DASHBOARD} replace />} 
+      <Route
+        path="/recruiter/dashboard"
+        element={<Navigate to={ROUTES.RECRUITER.DASHBOARD} replace />}
       />
-      <Route 
-        path="/recruiter" 
-        element={<Navigate to={ROUTES.RECRUITER.DASHBOARD} replace />} 
+      <Route
+        path="/recruiter"
+        element={<Navigate to={ROUTES.RECRUITER.DASHBOARD} replace />}
       />
 
       {/* ✅ Backward compatibility redirects for employer */}
-      <Route 
-        path="/employer/*" 
+      <Route
+        path="/employer/*"
         element={<Navigate to="/recruiter/dashboard" replace />}
       />
 
       {/* ✅ Candidate Dashboard Routes */}
-      <Route 
-        path="/candidate/dashboard/*" 
+      <Route
+        path="/candidate/dashboard/*"
         element={
           <CandidateRoute requireVerified={false}>
             <SuspenseWrapper>
               <CandidateDashboardLayout />
             </SuspenseWrapper>
           </CandidateRoute>
-        } 
+        }
       />
-      
+
       {/* ✅ Candidate redirects */}
-      <Route 
-        path="/candidate/dashboard" 
-        element={<Navigate to={ROUTES.CANDIDATE.DASHBOARD} replace />} 
+      <Route
+        path="/candidate/dashboard"
+        element={<Navigate to={ROUTES.CANDIDATE.DASHBOARD} replace />}
       />
-      <Route 
-        path="/candidate" 
-        element={<Navigate to={ROUTES.CANDIDATE.DASHBOARD} replace />} 
+      <Route
+        path="/candidate"
+        element={<Navigate to={ROUTES.CANDIDATE.DASHBOARD} replace />}
       />
 
       {/* ✅ Admin Dashboard Routes */}
-      <Route 
-        path="/admin/dashboard/*" 
+      <Route
+        path="/admin/dashboard/*"
         element={
           <AdminRoute requireVerified={true}>
             <SuspenseWrapper>
               <AdminDashboardLayout />
             </SuspenseWrapper>
           </AdminRoute>
-        } 
+        }
       />
-      
+
       {/* ✅ Admin redirects */}
-      <Route 
-        path="/admin/dashboard" 
-        element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} 
+      <Route
+        path="/admin/dashboard"
+        element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />}
       />
-      <Route 
-        path="/admin" 
-        element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} 
+      <Route
+        path="/admin"
+        element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />}
       />
 
       {/* ✅ Development temp dashboards - fallback routes */}
-      <Route 
-        path="/temp/recruiter" 
+      <Route
+        path="/temp/recruiter"
         element={
           <RecruiterRoute>
             <TempRecruiterDashboard />
           </RecruiterRoute>
-        } 
+        }
       />
-      <Route 
-        path="/temp/candidate" 
+      <Route
+        path="/temp/candidate"
         element={
           <CandidateRoute>
             <TempCandidateDashboard />
           </CandidateRoute>
-        } 
+        }
       />
-      <Route 
-        path="/temp/admin" 
+      <Route
+        path="/temp/admin"
         element={
           <AdminRoute>
             <TempAdminDashboard />
           </AdminRoute>
-        } 
+        }
       />
 
       {/* ✅ Error routes */}
-      <Route 
-        path={ROUTES.UNAUTHORIZED} 
+      <Route
+        path={ROUTES.UNAUTHORIZED}
         element={
           <SuspenseWrapper>
             <Unauthorized />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.FORBIDDEN} 
+      <Route
+        path={ROUTES.FORBIDDEN}
         element={
           <SuspenseWrapper>
             <Forbidden />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.NOT_FOUND} 
+      <Route
+        path={ROUTES.NOT_FOUND}
         element={
           <SuspenseWrapper>
             <NotFound />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path={ROUTES.SERVER_ERROR} 
+      <Route
+        path={ROUTES.SERVER_ERROR}
         element={
           <SuspenseWrapper>
             <ServerError />
           </SuspenseWrapper>
-        } 
+        }
       />
-      
+
       {/* ✅ 404 route - Must be last */}
-      <Route 
-        path="*" 
+      <Route
+        path="*"
         element={
           <SuspenseWrapper>
             <NotFound />
           </SuspenseWrapper>
-        } 
+        }
       />
     </Routes>
   );

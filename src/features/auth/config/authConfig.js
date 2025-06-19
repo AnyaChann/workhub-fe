@@ -69,7 +69,6 @@ export const authConfig = {
   // Validation rules
   validation: {
     email: {
-      required: true,
       pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
       message: 'Please enter a valid email address'
     },
@@ -83,8 +82,29 @@ export const authConfig = {
       requireUppercase: true,
       requireLowercase: true,
       requireSpecialChar: true,
-      message: 'Password must meet all criteria'
+      message: 'Password must be at least 8 characters with uppercase, lowercase, number and special character'
+    },
+    // ✅ Add fullname validation config
+    fullname: {
+      minLength: 2,
+      maxLength: 50,
+      pattern: /^[a-zA-ZÀ-ỹ\s'.-]+$/,
+      message: 'Full name must contain only letters, spaces, apostrophes, dots and hyphens'
     }
+  },
+  
+  api: {
+    endpoints: {
+      login: '/recruiter/login',
+      register: '/recruiter/register',
+      forgotPassword: '/recruiter/forgot-password',
+      resetPassword: '/recruiter/reset-password'
+    }
+  },
+  
+  storage: {
+    tokenKey: 'authToken',
+    userKey: 'user'
   }
 };
 

@@ -37,6 +37,30 @@
   font-size: 0.9rem;
 }
 
+/* Add to Register.css */
+.auth-link-text.switch-type {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e9ecef;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.registration-info {
+  background: #e8f4fd;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.info-text {
+  margin: 0;
+  color: #0c5460;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 /* Mobile specific adjustments for register */
 @media (max-width: 768px) {
   .register-form-container {

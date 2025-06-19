@@ -107,20 +107,31 @@ export const useAuthForm = (initialData = {}, validationRules = {}) => {
   };
 };
 
-// ✅ Updated validation rules using config
+// ✅ Updated validation rules
 export const validationRules = {
+  // ✅ Add fullname validation
+  fullname: [
+    (value) => !value ? 'Full name is required' : '',
+    (value) => value.trim().length < 2 ? 'Full name must be at least 2 characters' : '',
+    (value) => value.trim().length > 50 ? 'Full name must be less than 50 characters' : '',
+    (value) => !/^[a-zA-ZÀ-ỹ\s'.-]+$/.test(value.trim()) ? 'Full name contains invalid characters' : ''
+  ],
+  
   email: [
     (value) => !value ? 'Email is required' : '',
     (value) => !authConfig.validation.email.pattern.test(value) ? authConfig.validation.email.message : ''
   ],
+  
   password: [
     (value) => !value ? 'Password is required' : '',
     (value) => value.length < authConfig.validation.password.minLength ? authConfig.validation.password.message : ''
   ],
+  
   businessName: [
     (value) => !value ? 'Business name is required' : '',
     (value) => value.length < 2 ? 'Business name must be at least 2 characters' : ''
   ],
+  
   strongPassword: [
     (value) => !value ? 'Password is required' : '',
     (value) => value.length < authConfig.validation.strongPassword.minLength ? `Password must be at least ${authConfig.validation.strongPassword.minLength} characters` : '',

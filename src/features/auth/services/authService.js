@@ -19,10 +19,10 @@ class AuthService {
   initialize() {
     try {
       console.log('🔄 AuthService: Initializing...');
-      
+
       const token = this.getStoredToken();
       const user = this.getStoredUser();
-      
+
       if (token && user && this.isValidToken(token)) {
         this.authState = {
           user,
@@ -118,25 +118,309 @@ class AuthService {
   }
 
   // ✅ Register method
-  async register(userData) {
+  async registerCandidate(userData) {
     try {
-      this.authState.isLoading = true;
-      console.log('� AuthService: Starting registration for:', userData.email);
+      console.log('📝 AuthService: Starting candidate registration...');
+      console.log('📋 Candidate data:', {
+        fullname: userData.fullname,
+        email: userData.email,
+        hasPassword: !!userData.password
+      });
 
-      const response = await api.post('/recruiter/register', userData);
-      
-      console.log('✅ AuthService: Registration successful');
-      return {
-        success: true,
-        user: response.user || response.data,
-        message: response.message || 'Registration successful'
+      // ✅ Validate required fields for candidate
+      if (!userData.fullname || !userData.email || !userData.password) {
+        throw new Error('Full name, email, and password are required');
+      }
+
+      if (userData.fullname.trim().length < 2) {
+        throw new Error('Full name must be at least 2 characters');
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      if (userData.password.length < 8) {
+        throw new Error('Password must be at least 8 characters');
+      }
+
+      // ✅ Build request for candidate registration
+      const params = new URLSearchParams({
+        password: userData.password
+      });
+
+      const requestBody = {
+        fullname: userData.fullname.trim(),
+        email: userData.email.trim().toLowerCase(),
+        phone: userData.phone || '',
+        avatar: userData.avatar || ''
       };
 
+      const registerUrl = `/candidate/register?${params.toString()}`;
+
+      console.log('📡 AuthService: Making candidate registration request...');
+
+      // Make registration request
+      const response = await api.post(registerUrl, requestBody, {
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+        }
+      });
+
+      console.log('📨 AuthService: Candidate registration response:', response);
+
+      // ✅ Handle candidate registration response (also returns JWT token)
+      let result = {
+        success: true,
+        message: 'Candidate account created successfully',
+        requiresVerification: false,
+        token: null,
+        user: null
+      };
+
+      if (typeof response === 'string' && response.length > 20) {
+        // ✅ Backend returns JWT token
+        result.token = response.trim();
+
+        console.log('🎯 AuthService: Got JWT token from candidate registration');
+
+        // ✅ Decode token to extract user info
+        try {
+          const decoded = jwtUtils.decode(result.token);
+          if (decoded && decoded.payload) {
+            result.user = {
+              id: decoded.payload.id,
+              fullname: userData.fullname,
+              email: userData.email,
+              phone: userData.phone || '',
+              avatar: userData.avatar || '',
+              role: decoded.payload.role || 'candidate',
+              status: decoded.payload.status || 'unverified',
+              created_at: new Date().toISOString(),
+              exp: decoded.payload.exp,
+              iat: decoded.payload.iat
+            };
+
+            console.log('👤 Candidate created from token:', {
+              id: result.user.id,
+              role: result.user.role,
+              status: result.user.status,
+              email: result.user.email
+            });
+
+            // ✅ Check verification status
+            if (result.user.status === 'unverified') {
+              result.requiresVerification = true;
+              result.message = 'Candidate account created! Please check your email for verification.';
+            } else {
+              result.requiresVerification = false;
+              result.message = 'Candidate account created and verified!';
+
+              // Store auth data for verified accounts
+              const stored = this.storeAuthData(result.token, result.user);
+              if (stored) {
+                this.authState = {
+                  user: result.user,
+                  token: result.token,
+                  isAuthenticated: true,
+                  isLoading: false
+                };
+                result.autoLogin = true;
+              }
+            }
+          }
+        } catch (decodeError) {
+          console.warn('⚠️ Could not decode candidate token:', decodeError);
+          result.requiresVerification = true;
+          result.message = 'Account created! Please check your email for verification.';
+        }
+      }
+
+      console.log('✅ AuthService: Candidate registration successful', {
+        hasToken: !!result.token,
+        hasUser: !!result.user,
+        requiresVerification: result.requiresVerification,
+        autoLogin: result.autoLogin || false
+      });
+
+      return result;
+
     } catch (error) {
-      console.error('❌ AuthService: Registration failed:', error);
-      throw this.processError(error);
-    } finally {
-      this.authState.isLoading = false;
+      console.error('❌ AuthService: Candidate registration failed:', error);
+
+      if (error.response?.status === 409) {
+        throw new Error('A candidate account with this email already exists');
+      } else if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (errorData?.message?.includes('password')) {
+          throw new Error('Password parameter is missing or invalid');
+        } else {
+          throw new Error(errorData?.message || 'Invalid registration data');
+        }
+      } else {
+        throw new Error(error.message || 'Candidate registration failed');
+      }
+    }
+  }
+
+  async registerRecruiter(userData) {
+    try {
+      console.log('📝 AuthService: Starting recruiter registration...');
+      console.log('📋 Registration data:', {
+        fullname: userData.fullname,
+        email: userData.email,
+        hasPassword: !!userData.password,
+        phone: userData.phone || 'not provided',
+        avatar: userData.avatar || 'not provided'
+      });
+
+      // ✅ Validate required fields for recruiter
+      if (!userData.fullname || !userData.email || !userData.password) {
+        throw new Error('Full name, email, and password are required');
+      }
+
+      if (userData.fullname.trim().length < 2) {
+        throw new Error('Full name must be at least 2 characters');
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+        throw new Error('Please enter a valid work email address');
+      }
+
+      if (userData.password.length < 8) {
+        throw new Error('Password must be at least 8 characters');
+      }
+
+      const params = new URLSearchParams({
+        password: userData.password
+      });
+
+      const requestBody = {
+        fullname: userData.fullname.trim(),
+        email: userData.email.trim().toLowerCase(),
+        phone: userData.phone || '',
+        avatar: userData.avatar || ''
+      };
+
+      const registerUrl = `/recruiter/register?${params.toString()}`;
+
+      console.log('📡 AuthService: Making recruiter registration request...');
+
+      // ✅ Make registration request
+      const response = await api.post(registerUrl, requestBody, {
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8'
+        }
+      });
+
+      console.log('📨 AuthService: Registration response received');
+      console.log('   Type:', typeof response);
+      console.log('   Response:', response);
+
+      // ✅ Handle token response from registration
+      let result = {
+        success: true,
+        message: 'Recruiter account created successfully',
+        requiresVerification: false, // Will be set based on user status
+        token: null,
+        user: null
+      };
+
+      if (typeof response === 'string' && response.length > 20) {
+        // ✅ Backend returns JWT token directly
+        result.token = response.trim();
+
+        console.log('🎯 AuthService: Got JWT token from registration');
+
+        // ✅ Decode token to extract user info
+        try {
+          const decoded = jwtUtils.decode(result.token);
+          if (decoded && decoded.payload) {
+            result.user = {
+              id: decoded.payload.id,
+              fullname: userData.fullname,
+              email: userData.email,
+              phone: userData.phone || '',
+              avatar: userData.avatar || '',
+              role: decoded.payload.role || 'recruiter',
+              status: decoded.payload.status || 'unverified', // Check actual status from token
+              created_at: new Date().toISOString(),
+              // Include token expiry info
+              exp: decoded.payload.exp,
+              iat: decoded.payload.iat
+            };
+
+            console.log('👤 Recruiter created from token:', {
+              id: result.user.id,
+              role: result.user.role,
+              status: result.user.status,
+              email: result.user.email,
+              hasToken: !!result.token
+            });
+
+            // ✅ Check if user needs verification based on status
+            if (result.user.status === 'unverified') {
+              result.requiresVerification = true;
+              result.message = 'Recruiter account created! Please check your email for verification.';
+            } else if (result.user.status === 'verified' || result.user.status === 'active') {
+              result.requiresVerification = false;
+              result.message = 'Recruiter account created and verified! You can now sign in.';
+
+              // ✅ Store auth data for verified accounts
+              const stored = this.storeAuthData(result.token, result.user);
+              if (stored) {
+                this.authState = {
+                  user: result.user,
+                  token: result.token,
+                  isAuthenticated: true,
+                  isLoading: false
+                };
+                result.autoLogin = true;
+                console.log('✅ Auto-login enabled for verified recruiter');
+              }
+            }
+          }
+        } catch (decodeError) {
+          console.warn('⚠️ Could not decode registration token:', decodeError);
+          // Still success, but no auto-login
+          result.requiresVerification = true;
+          result.message = 'Account created! Please check your email for verification.';
+        }
+      } else if (response && typeof response === 'object') {
+        // Handle object response format
+        result.token = response.token || response.data?.token;
+        result.user = response.user || response.data?.user;
+        result.message = response.message || response.data?.message || result.message;
+      }
+
+      console.log('✅ AuthService: Recruiter registration successful', {
+        hasToken: !!result.token,
+        hasUser: !!result.user,
+        requiresVerification: result.requiresVerification,
+        autoLogin: result.autoLogin || false
+      });
+
+      return result;
+
+    } catch (error) {
+      console.error('❌ AuthService: Recruiter registration failed:', error);
+
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (errorData?.message?.includes('password')) {
+          throw new Error('Password parameter is missing or invalid');
+        } else if (errorData?.message?.includes('Required request parameter')) {
+          throw new Error('Missing required registration parameters');
+        } else {
+          throw new Error(errorData?.message || 'Invalid registration data');
+        }
+      } else if (error.response?.status === 409) {
+        throw new Error('A recruiter account with this email already exists');
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error(error.message || 'Recruiter registration failed. Please try again.');
+      }
     }
   }
 
@@ -144,7 +428,7 @@ class AuthService {
   logout() {
     try {
       console.log('� AuthService: Logging out...');
-      
+
       this.clearStorage();
       this.authState = {
         user: null,
@@ -152,7 +436,7 @@ class AuthService {
         isAuthenticated: false,
         isLoading: false
       };
-      
+
       console.log('✅ AuthService: Logout successful');
       return { success: true };
     } catch (error) {
@@ -176,10 +460,10 @@ class AuthService {
 
   // ✅ Check if user is authenticated
   isAuthenticated() {
-    return this.authState.isAuthenticated && 
-           !!this.authState.user && 
-           !!this.authState.token && 
-           this.isValidToken(this.authState.token);
+    return this.authState.isAuthenticated &&
+      !!this.authState.user &&
+      !!this.authState.token &&
+      this.isValidToken(this.authState.token);
   }
 
   // ✅ Get current user
@@ -211,13 +495,13 @@ class AuthService {
     if (typeof response === 'string' && response.length > 20) {
       // Backend returns JWT token directly
       const token = response.trim();
-      
+
       // Decode JWT to extract user info
       const decoded = jwtUtils.decode(token);
       if (!decoded || !decoded.payload) {
         throw new Error('Invalid JWT token received');
       }
-      
+
       const user = {
         id: decoded.payload.id,
         email: decoded.payload.sub || credentials.email,
@@ -227,17 +511,17 @@ class AuthService {
         exp: decoded.payload.exp,
         iat: decoded.payload.iat
       };
-      
+
       return { token, user };
     } else if (response && typeof response === 'object') {
       // Backend returns object
       const token = response.token || response.accessToken;
       const user = response.user || response.data;
-      
+
       if (!token || !user) {
         throw new Error('Invalid response format from server');
       }
-      
+
       return { token, user };
     } else {
       throw new Error('Unexpected response format from server');
@@ -334,7 +618,7 @@ class AuthService {
       if (!this.isValidTokenFormat(token)) {
         return false;
       }
-      
+
       const tokenInfo = jwtUtils.getTokenInfo(token);
       return tokenInfo && !tokenInfo.expired;
     } catch (error) {
@@ -356,7 +640,7 @@ class AuthService {
   processError(error) {
     const status = error.response?.status;
     const message = error.response?.data?.message || error.message;
-    
+
     switch (status) {
       case 401:
         return new Error('Invalid email or password');
