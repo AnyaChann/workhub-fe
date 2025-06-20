@@ -13,8 +13,11 @@ const JobCard = ({
   isDraftView = false 
 }) => {
   
-  const handleEdit = () => {
-    if (onEdit) onEdit(job);
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Edit button clicked for job:", job.id);
+    onEdit(job); // Gọi hàm callback với đầy đủ job object
   };
 
   const handleDelete = () => {
@@ -125,13 +128,13 @@ const JobCard = ({
                 >
                   ✏️
                 </button>
-                <button 
+                {/* <button 
                   className="action-btn duplicate-btn"
                   onClick={handleDuplicate}
                   title="Duplicate job"
                 >
                   📋
-                </button>
+                </button> */}
               </>
             )}
             
@@ -218,10 +221,6 @@ const JobCard = ({
             <div className="stat-item">
               <span className="stat-number">0</span>
               <span className="stat-label">Applications</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">0</span>
-              <span className="stat-label">Views</span>
             </div>
           </div>
         )}

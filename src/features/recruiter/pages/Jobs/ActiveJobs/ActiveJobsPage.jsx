@@ -4,6 +4,7 @@ import { jobService } from '../../../services/jobService';
 import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import SearchSection from '../../../components/common/SearchSection/SearchSection';
 import JobsList from '../../../components/jobs/JobsList/JobsList';
+import EditJobModal from '../../../components/jobs/EditJobModal/EditJobModal';
 import './ActiveJobsPage.css';
 
 const ActiveJobsPage = ({ onCreateJob }) => {
@@ -14,7 +15,9 @@ const ActiveJobsPage = ({ onCreateJob }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
   const [debugInfo, setDebugInfo] = useState({});
-  
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
   const { user, isRecruiter } = useAuth();
 
   useEffect(() => {
@@ -25,7 +28,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // ✅ Enhanced debugging info
       const debug = {
         timestamp: new Date().toISOString(),
@@ -34,41 +37,41 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         token: localStorage.getItem('accessToken') ? 'Present' : 'Missing',
         apiBaseUrl: process.env.REACT_APP_API_URL || 'Not set'
       };
-      
+
       console.log('� Debug info before API call:', debug);
       setDebugInfo(debug);
-      
+
       // ✅ Check if user is recruiter
       if (!isRecruiter()) {
         throw new Error('User is not authorized as recruiter');
       }
-      
+
       // ✅ Test connection first (optional)
       console.log('🔌 Testing API connection...');
       const connectionTest = await jobService.testConnection();
       console.log('🔌 Connection test result:', connectionTest);
-      
+
       // ✅ Attempt to get recruiter jobs
       console.log('�📋 Loading recruiter jobs from API...');
       const response = await jobService.getRecruiterJobs();
-      
+
       console.log('📥 API Response:', response);
-      
+
       // Filter active jobs
-      const activeJobs = Array.isArray(response) 
+      const activeJobs = Array.isArray(response)
         ? response.filter(job => {
-            const isActive = job.status === 'active' || 
-                           (!job.status && !job.isExpired);
-            console.log(`Job ${job.id}: status=${job.status}, isActive=${isActive}`);
-            return isActive;
-          })
+          const isActive = job.status === 'active' ||
+            (!job.status && !job.isExpired);
+          console.log(`Job ${job.id}: status=${job.status}, isActive=${isActive}`);
+          return isActive;
+        })
         : [];
-      
+
       console.log('✅ Active jobs loaded:', activeJobs.length, activeJobs);
-      
+
       setAllJobs(activeJobs);
       setJobs(activeJobs);
-      
+
       // Update debug info with success
       setDebugInfo(prev => ({
         ...prev,
@@ -76,14 +79,14 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         jobCount: activeJobs.length,
         lastLoaded: new Date().toISOString()
       }));
-      
+
     } catch (err) {
       console.error('❌ Error loading jobs:', err);
-      
+
       // ✅ Enhanced error handling with specific messages
       let errorMessage = 'Failed to load jobs';
       let shouldShowMockData = false;
-      
+
       if (err.status === 401) {
         errorMessage = 'Authentication failed. Please log in again.';
       } else if (err.status === 403) {
@@ -100,9 +103,9 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         errorMessage = err.message || 'Unknown error occurred';
         shouldShowMockData = true;
       }
-      
+
       setError(errorMessage);
-      
+
       // Update debug info with error details
       setDebugInfo(prev => ({
         ...prev,
@@ -113,11 +116,11 @@ const ActiveJobsPage = ({ onCreateJob }) => {
           originalError: err.originalError?.message
         }
       }));
-      
+
       // ✅ Show mock data for development/demo purposes
       if (shouldShowMockData && process.env.NODE_ENV === 'development') {
         console.log('🔄 Using mock data for development...');
-        
+
         const mockJobs = [
           {
             id: 'mock-1',
@@ -186,17 +189,17 @@ const ActiveJobsPage = ({ onCreateJob }) => {
             displayExperience: '2-5 years'
           }
         ];
-        
+
         setAllJobs(mockJobs);
         setJobs(mockJobs);
-        
+
         setDebugInfo(prev => ({
           ...prev,
           usingMockData: true,
           mockJobCount: mockJobs.length
         }));
       }
-      
+
     } finally {
       setLoading(false);
     }
@@ -212,11 +215,11 @@ const ActiveJobsPage = ({ onCreateJob }) => {
   const handleTestAPI = async () => {
     try {
       console.log('🧪 Testing API endpoints...');
-      
+
       // Test basic connection
       const connectionTest = await jobService.testConnection();
       console.log('Connection test:', connectionTest);
-      
+
       // Test auth
       try {
         const userInfo = await jobService.getCurrentUser();
@@ -224,7 +227,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
       } catch (authError) {
         console.log('Auth test failed:', authError.message);
       }
-      
+
       alert('Check console for API test results');
     } catch (error) {
       console.error('API test failed:', error);
@@ -232,11 +235,23 @@ const ActiveJobsPage = ({ onCreateJob }) => {
     }
   };
 
-  // Existing functions remain the same...
-  const handleEditJob = async (job) => {
-    console.log('✏️ Edit job:', job);
-    alert(`Edit job: ${job.title}\nFeature coming soon!`);
+  const handleEditJob = (job) => {
+    console.log('🖊️ Edit job triggered:', job);
+    setSelectedJob(job);
+    setIsEditModalOpen(true);
   };
+
+  // Thêm hàm xử lý khi chỉnh sửa thành công
+  const handleEditSuccess = (jobId) => {
+    console.log('✅ Edit success for job ID:', jobId);
+    setIsEditModalOpen(false);
+    setSelectedJob(null);
+
+    // Reload jobs after successful edit
+    loadJobs();
+  };
+
+  // Cập nhật hàm handleDeleteJob để xử lý lỗi tốt hơn và hiển thị thông báo phù hợp
 
   const handleDeleteJob = async (job) => {
     if (!window.confirm(`Are you sure you want to delete "${job.title}"?`)) {
@@ -245,26 +260,63 @@ const ActiveJobsPage = ({ onCreateJob }) => {
 
     try {
       console.log('🗑️ Deleting job:', job.id);
-      
-      if (job.id.startsWith('mock-')) {
+
+      if (job.id.toString().startsWith('mock-')) {
         console.log('🔄 Deleting mock job (local only)');
         const updatedJobs = allJobs.filter(j => j.id !== job.id);
         setAllJobs(updatedJobs);
         setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
         return;
       }
-      
+
+      // Call deleteJob service with job ID
       await jobService.deleteJob(job.id);
-      
+
+      // Update UI after successful deletion
       const updatedJobs = allJobs.filter(j => j.id !== job.id);
       setAllJobs(updatedJobs);
       setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
-      
+
+      // Show success notification
+      const jobDeletedNotification = document.createElement('div');
+      jobDeletedNotification.className = 'success-toast';
+      jobDeletedNotification.innerHTML = `
+          <span class="toast-icon">✅</span>
+          <span class="toast-message">Job "${job.title}" deleted successfully</span>
+        `;
+      document.body.appendChild(jobDeletedNotification);
+
+      setTimeout(() => {
+        jobDeletedNotification.classList.add('show');
+        setTimeout(() => {
+          jobDeletedNotification.classList.remove('show');
+          setTimeout(() => {
+            jobDeletedNotification.remove();
+          }, 300);
+        }, 3000);
+      }, 100);
+
       console.log('✅ Job deleted successfully');
-      
+
     } catch (err) {
       console.error('❌ Error deleting job:', err);
-      alert('Failed to delete job. Please try again.');
+
+      // Show appropriate error message based on error status
+      let errorMessage = 'Failed to delete job. Please try again.';
+
+      if (err.status === 403) {
+        errorMessage = 'You do not have permission to delete this job.';
+      } else if (err.status === 404) {
+        errorMessage = 'This job could not be found. It may have been deleted already.';
+        // If job not found, remove it from local state
+        const updatedJobs = allJobs.filter(j => j.id !== job.id);
+        setAllJobs(updatedJobs);
+        setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
+      } else if (err.status === 401) {
+        errorMessage = 'Your session has expired. Please log in again.';
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -297,7 +349,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
 
   const handleSortChange = (sortOption) => {
     setSortBy(sortOption);
-    
+
     const sorted = [...jobs].sort((a, b) => {
       switch (sortOption) {
         case 'created_at':
@@ -312,20 +364,20 @@ const ActiveJobsPage = ({ onCreateJob }) => {
           return 0;
       }
     });
-    
+
     setJobs(sorted);
   };
 
   return (
     <div className="active-jobs-page">
-      <PageHeader 
+      <PageHeader
         title="Active Jobs"
         subtitle={`${jobs.length} active job${jobs.length !== 1 ? 's' : ''} ${allJobs.length !== jobs.length ? `(filtered from ${allJobs.length})` : ''}`}
         showCreateButton={true}
         onCreateJob={onCreateJob}
         createButtonText="➕ Create New Job"
       />
-      
+
       {/* ✅ Enhanced error banner */}
       {error && (
         <div className="error-banner">
@@ -350,8 +402,8 @@ const ActiveJobsPage = ({ onCreateJob }) => {
           )}
         </div>
       )}
-      
-      <SearchSection 
+
+      <SearchSection
         placeholder="Search jobs by title, location, description..."
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -364,15 +416,15 @@ const ActiveJobsPage = ({ onCreateJob }) => {
           { value: 'salary', label: 'Salary Range' }
         ]}
       />
-      
-      <JobsList 
+
+      <JobsList
         jobs={jobs}
         loading={loading}
         error={null} // Don't show error in JobsList since we handle it above
         emptyStateConfig={{
           icon: '📋',
           title: searchQuery ? 'No matching jobs found' : 'No active jobs found',
-          description: searchQuery 
+          description: searchQuery
             ? `No jobs match "${searchQuery}". Try adjusting your search.`
             : 'Start by posting your first job to find great candidates.',
           showCreateButton: !searchQuery,
@@ -384,6 +436,14 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         onViewApplications={handleViewApplications}
         showActions={true}
         showApplicationCount={true}
+      />
+
+      {/* Thêm EditJobModal vào component */}
+      <EditJobModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        job={selectedJob}
+        onSuccess={handleEditSuccess}
       />
 
       {/* ✅ Enhanced debug panel */}
@@ -399,7 +459,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
               <p><strong>Sort by:</strong> {sortBy}</p>
               <p><strong>Using mock data:</strong> {debugInfo.usingMockData ? 'Yes' : 'No'}</p>
             </div>
-            
+
             <div className="debug-section">
               <h5>🔐 Auth</h5>
               <p><strong>User ID:</strong> {debugInfo.user?.id || 'N/A'}</p>
@@ -408,7 +468,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
               <p><strong>Is Recruiter:</strong> {debugInfo.isRecruiter ? 'Yes' : 'No'}</p>
               <p><strong>Token:</strong> {debugInfo.token}</p>
             </div>
-            
+
             <div className="debug-section">
               <h5>🌐 API</h5>
               <p><strong>Base URL:</strong> {debugInfo.apiBaseUrl}</p>
@@ -422,7 +482,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
               )}
             </div>
           </div>
-          
+
           <div className="debug-actions">
             <button onClick={handleRetry} className="debug-btn">
               🔄 Reload Jobs

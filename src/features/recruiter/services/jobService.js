@@ -261,6 +261,107 @@ export const jobService = {
     }
   },
 
+  updateJob: async (jobId, jobData) => {
+    try {
+      console.log('✏️ Updating job:', jobId, jobData);
+
+      // Kiểm tra ID hợp lệ
+      if (!jobId || isNaN(parseInt(jobId))) {
+        throw new Error('Invalid job ID provided');
+      }
+
+      // Cấu trúc payload theo đúng định dạng API yêu cầu
+      const apiPayload = {
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        salaryRange: jobData.salaryRange,
+        experience: jobData.experience,
+        deadline: jobData.deadline,
+        postAt: jobData.postAt || 'standard',
+
+        // Định dạng các đối tượng lồng nhau đúng cấu trúc
+        category: {
+          id: typeof jobData.category === 'object' ? jobData.category.id : jobData.categoryId || jobData.category
+        },
+
+        type: {
+          id: typeof jobData.type === 'object' ? jobData.type.id : jobData.typeId || jobData.type
+        },
+
+        position: {
+          id: typeof jobData.position === 'object' ? jobData.position.id : jobData.positionId || jobData.position
+        },
+
+        // Xử lý skills có thể là mảng đối tượng hoặc mảng ID
+        skills: Array.isArray(jobData.skills)
+          ? jobData.skills.map(skill => {
+            // Nếu skill đã là object có id
+            if (typeof skill === 'object' && skill.id) {
+              return skill;
+            }
+            // Nếu skill là ID số hoặc string
+            else if (typeof skill === 'number' || typeof skill === 'string') {
+              return { id: skill };
+            }
+            return skill;
+          })
+          : []
+      };
+
+      console.log('📤 API payload for update:', apiPayload);
+
+      // Gọi API để cập nhật job
+      const response = await api.put(`/jobs/${jobId}`, apiPayload);
+
+      console.log('✅ Job updated successfully:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error updating job:', error);
+
+      // Enhanced error handling for update job
+      if (error.response) {
+        console.error('📥 Update job error response:', error.response.data);
+
+        let errorMessage = 'Failed to update job';
+        let validationErrors = {};
+
+        // Xử lý các loại lỗi từ API trả về
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Invalid job data provided';
+          validationErrors = error.response.data?.errors || {};
+        } else if (error.response.status === 401) {
+          errorMessage = 'Your session has expired. Please log in again.';
+        } else if (error.response.status === 403) {
+          errorMessage = 'You do not have permission to edit this job';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Job not found. It may have been deleted.';
+        } else if (error.response.status === 422) {
+          errorMessage = 'Validation failed. Please check your input data.';
+          validationErrors = error.response.data?.errors || {};
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+
+        // Tạo error object có thêm thông tin
+        const enhancedError = new Error(errorMessage);
+        enhancedError.status = error.response.status;
+        enhancedError.validationErrors = validationErrors;
+        enhancedError.originalError = error;
+
+        throw enhancedError;
+      }
+
+      // Nếu không phải lỗi response (như network error)
+      throw error;
+    }
+  },
+
+  // ✅ Thêm phương thức editJob như alias của updateJob để mã dễ đọc hơn
+  editJob: async (jobId, jobData) => {
+    return jobService.updateJob(jobId, jobData);
+  },
+
   // ✅ Add method to get form options
   getJobFormOptions: async () => {
     try {
@@ -322,14 +423,53 @@ export const jobService = {
   },
 
   // ✅ Delete job
+  // Cập nhật phương thức deleteJob với endpoint chuẩn và xử lý lỗi chi tiết
+
+  // ✅ Xóa job - cập nhật endpoint và xử lý lỗi chi tiết
   deleteJob: async (jobId) => {
     try {
       console.log('🗑️ Deleting job:', jobId);
+
+      // Kiểm tra ID hợp lệ
+      if (!jobId || isNaN(parseInt(jobId))) {
+        throw new Error('Invalid job ID provided');
+      }
+
+      // Sử dụng endpoint chuẩn DELETE /jobs/{id}
       const response = await api.delete(`/jobs/${jobId}`);
-      console.log('✅ Job deleted successfully');
+      console.log('✅ Job deleted successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Error deleting job:', error);
+
+      // Enhanced error handling for delete job
+      if (error.response) {
+        console.error('📥 Delete job error response:', error.response.data);
+
+        let errorMessage = 'Failed to delete job';
+
+        // Xử lý các loại lỗi từ API trả về
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Invalid job ID provided';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Your session has expired. Please log in again.';
+        } else if (error.response.status === 403) {
+          errorMessage = 'You do not have permission to delete this job';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Job not found. It may have been deleted already.';
+        } else if (error.response.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+
+        // Tạo error object có thêm thông tin
+        const enhancedError = new Error(errorMessage);
+        enhancedError.status = error.response.status;
+        enhancedError.originalError = error;
+
+        throw enhancedError;
+      }
+
+      // Nếu không phải lỗi response (như network error)
       throw error;
     }
   }

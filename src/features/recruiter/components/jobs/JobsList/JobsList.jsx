@@ -101,10 +101,10 @@ const JobsList = ({
             <JobCard
               key={job.id}
               job={job}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onDuplicate={onDuplicate}
-              onViewApplications={onViewApplications}
+              onEdit={() => onEdit(job)} 
+              onDelete={() => onDelete(job)}
+              onDuplicate={() => onDuplicate(job.id)}
+              onViewApplications={() => onViewApplications(job)}
               onContinuePosting={onContinuePosting}
               showActions={showActions}
               showApplicationCount={showApplicationCount}
