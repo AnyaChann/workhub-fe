@@ -2,7 +2,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../../../core/contexts/AuthContext';
 import { jobService } from '../../../services/jobService';
-import { packageService } from '../../../services/packageService';
+import { packageService, jobServiceExtension } from '../../../services/packageService';
 import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import './CreateJobPage.css';
 
@@ -14,9 +14,9 @@ const CreateJobPage = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth(); // ✅ Get user and loading state from AuthContext
   
-  // ✅ Form state based on API structure
+  // ✅ Form state
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,7 +24,7 @@ const CreateJobPage = ({
     experience: '',
     location: '',
     deadline: '',
-    postAt: '', // Will be set based on user's package
+    postAt: '',
     categoryId: '',
     typeId: '',
     positionId: '',
@@ -37,12 +37,13 @@ const CreateJobPage = ({
   
   // ✅ Package information state
   const [userPackage, setUserPackage] = useState(null);
-  const [packageLoading, setPackageLoading] = useState(true);
+  const [packageLoading, setPackageLoading] = useState(false);
   const [packageError, setPackageError] = useState(null);
   const [remainingPosts, setRemainingPosts] = useState(0);
   const [availablePostTypes, setAvailablePostTypes] = useState([]);
+  const [packageStats, setPackageStats] = useState(null);
   
-  // Dropdown options states remain the same...
+  // ✅ Dropdown options (these should be loaded from API in real app)
   const [categories, setCategories] = useState([
     { id: 1, name: 'Công nghệ thông tin', description: 'Ngành liên quan đến lập trình...' },
     { id: 2, name: 'Marketing', description: 'Ngành tiếp thị và quảng cáo...' },
@@ -78,103 +79,90 @@ const CreateJobPage = ({
   
   const [selectedSkills, setSelectedSkills] = useState([]);
 
-  // ✅ Load user package information
+  // ✅ Effect to load package when user is available
   useEffect(() => {
-    loadUserPackage();
-  }, [user]);
+    console.log('👤 User state changed:', { 
+      user: user ? { id: user.id, email: user.email } : null, 
+      authLoading 
+    });
+    
+    if (!authLoading && user?.id) {
+      console.log('✅ User loaded, loading package for user ID:', user.id);
+      loadUserPackage();
+    } else if (!authLoading && !user) {
+      console.log('❌ No user found after auth loading completed');
+      setPackageError('User not authenticated. Please log in again.');
+    }
+  }, [user, authLoading]);
 
+  // ✅ Enhanced loadUserPackage with better error handling
   const loadUserPackage = async () => {
     try {
       setPackageLoading(true);
       setPackageError(null);
       
-      console.log('📦 Loading user package information...');
+      console.log('📦 Loading package for user ID:', user?.id);
       
-      // Get user's current active package
-      const packageInfo = await packageService.getUserActivePackage();
+      if (!user?.id) {
+        throw new Error('User ID not available. Please log in again.');
+      }
+      
+      // ✅ Get user's active package using user ID from context
+      const packageInfo = await packageService.getUserActivePackage(user.id);
       console.log('📦 User package info:', packageInfo);
       
       if (!packageInfo) {
         setPackageError('No active package found. Please purchase a package to post jobs.');
+        setUserPackage(null);
+        setAvailablePostTypes([]);
+        setRemainingPosts(0);
+        setPackageStats(null);
         return;
       }
       
       setUserPackage(packageInfo);
       
-      // ✅ Calculate available post types and remaining posts
-      const features = packageInfo.servicePackage?.features || [];
-      console.log('🔧 Package features:', features);
-      
-      // Get remaining job posts
-      const currentJobCount = await jobService.getUserJobCount();
+      // ✅ Get current job count
+      const currentJobCount = await jobServiceExtension.getUserJobCount();
       console.log('📊 Current job count:', currentJobCount);
       
-      // Calculate remaining posts based on package limits
-      let totalLimit = 0;
-      const postTypes = [];
+      // ✅ Calculate remaining posts
+      const remainingInfo = await packageService.calculateRemainingPosts(packageInfo, currentJobCount);
+      console.log('📊 Remaining posts info:', remainingInfo);
       
-      features.forEach(feature => {
-        if (feature.jobPostLimit && feature.jobPostLimit > 0) {
-          totalLimit += feature.jobPostLimit;
-          
-          // Add post type option
-          if (feature.postAt) {
-            postTypes.push({
-              type: feature.postAt,
-              name: getPostTypeName(feature.postAt),
-              description: feature.description,
-              remaining: Math.max(0, feature.jobPostLimit - (currentJobCount[feature.postAt] || 0))
-            });
-          }
-        }
+      setAvailablePostTypes(remainingInfo.availableTypes);
+      setRemainingPosts(remainingInfo.total);
+      setPackageStats({
+        totalLimit: remainingInfo.totalLimit,
+        totalUsed: remainingInfo.totalUsed,
+        byType: remainingInfo.byType
       });
       
-      setAvailablePostTypes(postTypes);
-      setRemainingPosts(Math.max(0, totalLimit - currentJobCount.total));
-      
-      // ✅ Set default post type based on available options
-      if (postTypes.length > 0) {
-        // Find the first available post type with remaining posts
-        const availableType = postTypes.find(pt => pt.remaining > 0);
+      // ✅ Set default post type if available and form doesn't have one
+      if (remainingInfo.availableTypes.length > 0 && !formData.postAt) {
+        const availableType = remainingInfo.availableTypes.find(pt => pt.isAvailable);
         if (availableType) {
           setFormData(prev => ({
             ...prev,
             postAt: availableType.type
           }));
+          console.log('📦 Set default post type:', availableType.type);
         }
       }
       
     } catch (error) {
       console.error('❌ Error loading user package:', error);
       setPackageError(error.message || 'Failed to load package information');
+      setUserPackage(null);
+      setAvailablePostTypes([]);
+      setRemainingPosts(0);
+      setPackageStats(null);
     } finally {
       setPackageLoading(false);
     }
   };
 
-  // ✅ Helper function to get post type display name
-  const getPostTypeName = (postType) => {
-    const typeNames = {
-      'standard': 'Standard Post',
-      'premium': 'Premium Post',
-      'urgent': 'Urgent Post',
-      'proposal': 'Proposal Post'
-    };
-    return typeNames[postType] || postType;
-  };
-
-  // ✅ Helper function to get post type icon and color
-  const getPostTypeStyle = (postType) => {
-    const styles = {
-      'standard': { icon: '📝', color: '#6b7280', bgColor: '#f3f4f6' },
-      'premium': { icon: '⭐', color: '#f59e0b', bgColor: '#fef3c7' },
-      'urgent': { icon: '🚨', color: '#ef4444', bgColor: '#fecaca' },
-      'proposal': { icon: '💼', color: '#8b5cf6', bgColor: '#ede9fe' }
-    };
-    return styles[postType] || styles.standard;
-  };
-
-  // ✅ Load draft data if editing (existing code remains the same)
+  // ✅ Load draft data if editing
   useEffect(() => {
     const draftData = location.state?.jobData;
     if (draftData) {
@@ -196,7 +184,7 @@ const CreateJobPage = ({
     }
   }, [location.state]);
 
-  // ✅ Form handlers (existing code remains the same)
+  // ✅ Form handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -204,7 +192,6 @@ const CreateJobPage = ({
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({
         ...prev,
@@ -224,7 +211,7 @@ const CreateJobPage = ({
     });
   };
 
-  // ✅ Enhanced form validation with package checks
+  // ✅ Enhanced form validation
   const validateForm = () => {
     const errors = {};
     
@@ -267,15 +254,22 @@ const CreateJobPage = ({
     // ✅ Package validation
     if (!userPackage) {
       errors.package = 'No active package found. Please purchase a package to post jobs.';
-    } else if (remainingPosts <= 0) {
-      errors.package = 'You have reached your job posting limit. Please upgrade your package.';
-    } else if (!formData.postAt) {
-      errors.postAt = 'Post type is required';
     } else {
-      // Check if selected post type is available
-      const selectedPostType = availablePostTypes.find(pt => pt.type === formData.postAt);
-      if (!selectedPostType || selectedPostType.remaining <= 0) {
-        errors.postAt = 'Selected post type is not available in your package';
+      const packageValidation = packageService.validatePackageForJobPosting(userPackage, formData.postAt);
+      
+      if (!packageValidation.isValid) {
+        errors.package = packageValidation.error;
+      } else if (remainingPosts <= 0) {
+        errors.package = 'You have reached your job posting limit. Please upgrade your package.';
+      } else if (!formData.postAt) {
+        errors.postAt = 'Post type is required';
+      } else {
+        const selectedPostType = availablePostTypes.find(pt => pt.type === formData.postAt);
+        if (!selectedPostType) {
+          errors.postAt = 'Selected post type is not available in your package';
+        } else if (!selectedPostType.isAvailable) {
+          errors.postAt = `You have no remaining ${selectedPostType.name} posts`;
+        }
       }
     }
     
@@ -283,7 +277,7 @@ const CreateJobPage = ({
     return Object.keys(errors).length === 0;
   };
 
-  // ✅ Submit handlers (enhanced with package validation)
+  // ✅ Submit handlers
   const handleSubmit = async (status = 'active') => {
     if (!validateForm()) {
       return;
@@ -293,17 +287,18 @@ const CreateJobPage = ({
       setIsSubmitting(true);
       setSubmitError('');
       
-      // ✅ Double-check package limits before submitting
-      if (remainingPosts <= 0) {
-        throw new Error('You have reached your job posting limit');
+      // ✅ Final validation
+      const packageValidation = packageService.validatePackageForJobPosting(userPackage, formData.postAt);
+      if (!packageValidation.isValid) {
+        throw new Error(packageValidation.error);
       }
       
       const selectedPostType = availablePostTypes.find(pt => pt.type === formData.postAt);
-      if (!selectedPostType || selectedPostType.remaining <= 0) {
+      if (!selectedPostType?.isAvailable) {
         throw new Error('Selected post type is not available');
       }
       
-      // ✅ Prepare API payload according to the structure
+      // ✅ Prepare API payload
       const jobPayload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -311,7 +306,7 @@ const CreateJobPage = ({
         experience: formData.experience.trim() || 'Not specified',
         location: formData.location.trim(),
         deadline: new Date(formData.deadline).toISOString(),
-        postAt: formData.postAt, // Set by user's package
+        postAt: formData.postAt,
         category: {
           id: parseInt(formData.categoryId)
         },
@@ -327,14 +322,12 @@ const CreateJobPage = ({
       console.log('📤 Submitting job with payload:', jobPayload);
       
       if (isModal && onSave) {
-        // Modal mode - call parent handler
         await onSave({ ...jobPayload, status });
       } else {
-        // Page mode - call API directly
         const response = await jobService.createJob(jobPayload);
         console.log('✅ Job created successfully:', response);
         
-        // Refresh package info after successful creation
+        // Refresh package info
         await loadUserPackage();
         
         if (status === 'draft') {
@@ -352,14 +345,8 @@ const CreateJobPage = ({
     }
   };
 
-  const handleSaveAsDraft = () => {
-    handleSubmit('draft');
-  };
-
-  const handlePublish = () => {
-    handleSubmit('active');
-  };
-
+  const handleSaveAsDraft = () => handleSubmit('draft');
+  const handlePublish = () => handleSubmit('active');
   const handleCancel = () => {
     if (isModal && onClose) {
       onClose();
@@ -367,11 +354,72 @@ const CreateJobPage = ({
       navigate('/recruiter/jobs/active');
     }
   };
+  const handleUpgradePackage = () => navigate('/recruiter/account/billing');
 
-  // ✅ Handle package upgrade
-  const handleUpgradePackage = () => {
-    navigate('/recruiter/account/billing');
+  // ✅ Helper functions
+  const getPostTypeName = (postType) => packageService.getPostTypeName(postType);
+  const getPostTypeStyle = (postType) => {
+    const styles = {
+      'standard': { icon: '📝', color: '#6b7280', bgColor: '#f3f4f6' },
+      'premium': { icon: '⭐', color: '#f59e0b', bgColor: '#fef3c7' },
+      'urgent': { icon: '🚨', color: '#ef4444', bgColor: '#fecaca' },
+      'proposal': { icon: '💼', color: '#8b5cf6', bgColor: '#ede9fe' }
+    };
+    return styles[postType] || styles.standard;
   };
+
+  // ✅ Debug user info function
+  const handleDebugUserInfo = () => {
+    console.log('🐛 Debug User Info:', {
+      user,
+      userId: user?.id,
+      authLoading,
+      userPackage,
+      packageLoading,
+      packageError
+    });
+    
+    alert(`Debug Info:
+User: ${user ? `✅ ID: ${user.id}, Email: ${user.email}` : '❌ Not loaded'}
+Auth Loading: ${authLoading}
+Package: ${userPackage ? `✅ ${userPackage.servicePackage?.name}` : '❌ Not loaded'}
+Package Loading: ${packageLoading}
+Error: ${packageError || 'None'}
+
+Check console for full details.`);
+  };
+
+  // ✅ Show loading if auth is still loading
+  if (authLoading) {
+    return (
+      <div className="create-job-page">
+        <div className="package-loading">
+          <div className="loading-spinner-small"></div>
+          <span>Loading user information...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Show error if no user after loading
+  if (!authLoading && !user) {
+    return (
+      <div className="create-job-page">
+        <div className="package-error">
+          <span className="error-icon">⚠️</span>
+          <div className="error-content">
+            <strong>Authentication Error:</strong> Please log in to create jobs.
+            <button 
+              className="upgrade-btn" 
+              onClick={() => navigate('/login')}
+            >
+              🔐 Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-job-page">
@@ -381,27 +429,46 @@ const CreateJobPage = ({
           subtitle="Fill in the details to post a new job"
           showBackButton={true}
           onBack={handleCancel}
+          actions={
+            process.env.NODE_ENV === 'development' ? (
+              <button 
+                className="btn btn-outline btn-sm"
+                onClick={handleDebugUserInfo}
+              >
+                🐛 Debug User
+              </button>
+            ) : null
+          }
         />
       )}
       
-      {/* ✅ Package Information Banner */}
+      {/* ✅ Enhanced Package Information Banner */}
       <div className="package-info-banner">
         {packageLoading ? (
           <div className="package-loading">
             <div className="loading-spinner-small"></div>
-            <span>Loading package information...</span>
+            <span>Loading package information for user {user?.email}...</span>
           </div>
         ) : packageError ? (
           <div className="package-error">
             <span className="error-icon">⚠️</span>
             <div className="error-content">
               <strong>Package Error:</strong> {packageError}
-              <button 
-                className="upgrade-btn" 
-                onClick={handleUpgradePackage}
-              >
-                🎯 Purchase Package
-              </button>
+              <div className="error-actions">
+                <button 
+                  className="upgrade-btn" 
+                  onClick={handleUpgradePackage}
+                >
+                  🎯 Purchase Package
+                </button>
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  onClick={loadUserPackage}
+                  disabled={packageLoading}
+                >
+                  🔄 Retry
+                </button>
+              </div>
             </div>
           </div>
         ) : userPackage ? (
@@ -411,6 +478,17 @@ const CreateJobPage = ({
               <div className="package-details">
                 <h4 className="package-name">{userPackage.servicePackage?.name}</h4>
                 <p className="package-description">{userPackage.description}</p>
+                <div className="package-meta">
+                  <span className="package-meta-item">
+                    👤 User: {user?.email}
+                  </span>
+                  <span className="package-meta-item">
+                    💰 ${userPackage.price}
+                  </span>
+                  <span className="package-meta-item">
+                    📅 Expires: {new Date(userPackage.expirationDate).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
             </div>
             
@@ -422,12 +500,14 @@ const CreateJobPage = ({
                 </span>
               </div>
               
-              <div className="limit-item">
-                <span className="limit-label">Expires:</span>
-                <span className="limit-value">
-                  {new Date(userPackage.expirationDate).toLocaleDateString()}
-                </span>
-              </div>
+              {packageStats && (
+                <div className="limit-item">
+                  <span className="limit-label">Total Used:</span>
+                  <span className="limit-value">
+                    {packageStats.totalUsed} / {packageStats.totalLimit}
+                  </span>
+                </div>
+              )}
             </div>
             
             {remainingPosts <= 2 && (
@@ -441,10 +521,10 @@ const CreateJobPage = ({
           </div>
         ) : null}
       </div>
-      
+
       <div className="create-job-content">
         <form className="create-job-form" onSubmit={(e) => e.preventDefault()}>
-          {/* Basic Information section remains the same... */}
+          {/* ✅ Basic Information */}
           <div className="form-section">
             <h3 className="section-title">📋 Basic Information</h3>
             
@@ -460,7 +540,7 @@ const CreateJobPage = ({
                 onChange={handleInputChange}
                 className={`form-input ${formErrors.title ? 'error' : ''}`}
                 placeholder="e.g. Senior Java Developer"
-                disabled={isSubmitting || isLoading || packageLoading}
+                disabled={isSubmitting || isLoading || packageLoading || !userPackage}
               />
               {formErrors.title && (
                 <span className="error-message">{formErrors.title}</span>
@@ -479,7 +559,7 @@ const CreateJobPage = ({
                 className={`form-textarea ${formErrors.description ? 'error' : ''}`}
                 placeholder="Describe the job responsibilities, requirements, and what you're looking for in a candidate..."
                 rows={6}
-                disabled={isSubmitting || isLoading || packageLoading}
+                disabled={isSubmitting || isLoading || packageLoading || !userPackage}
               />
               {formErrors.description && (
                 <span className="error-message">{formErrors.description}</span>
@@ -487,11 +567,10 @@ const CreateJobPage = ({
             </div>
           </div>
 
-          {/* ✅ Enhanced Job Details with Post Type Selection */}
+          {/* ✅ Job Details */}
           <div className="form-section">
             <h3 className="section-title">💼 Job Details</h3>
             
-            {/* Category and Type row remains the same... */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="categoryId" className="form-label">
@@ -503,7 +582,7 @@ const CreateJobPage = ({
                   value={formData.categoryId}
                   onChange={handleInputChange}
                   className={`form-select ${formErrors.categoryId ? 'error' : ''}`}
-                  disabled={isSubmitting || isLoading || packageLoading}
+                  disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                 >
                   <option value="">Select a category</option>
                   {categories.map(category => (
@@ -527,7 +606,7 @@ const CreateJobPage = ({
                   value={formData.typeId}
                   onChange={handleInputChange}
                   className={`form-select ${formErrors.typeId ? 'error' : ''}`}
-                  disabled={isSubmitting || isLoading || packageLoading}
+                  disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                 >
                   <option value="">Select job type</option>
                   {types.map(type => (
@@ -542,7 +621,6 @@ const CreateJobPage = ({
               </div>
             </div>
 
-            {/* Position and Post Type row */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="positionId" className="form-label">
@@ -554,7 +632,7 @@ const CreateJobPage = ({
                   value={formData.positionId}
                   onChange={handleInputChange}
                   className={`form-select ${formErrors.positionId ? 'error' : ''}`}
-                  disabled={isSubmitting || isLoading || packageLoading}
+                  disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                 >
                   <option value="">Select a position</option>
                   {positions.map(position => (
@@ -568,58 +646,6 @@ const CreateJobPage = ({
                 )}
               </div>
 
-              {/* ✅ Enhanced Post Type Selection */}
-              <div className="form-group">
-                <label htmlFor="postAt" className="form-label">
-                  Post Type <span className="required">*</span>
-                </label>
-                <div className="post-type-selection">
-                  {availablePostTypes.length > 0 ? (
-                    availablePostTypes.map(postType => {
-                      const style = getPostTypeStyle(postType.type);
-                      const isSelected = formData.postAt === postType.type;
-                      const isAvailable = postType.remaining > 0;
-                      
-                      return (
-                        <div
-                          key={postType.type}
-                          className={`post-type-option ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}`}
-                          onClick={() => {
-                            if (isAvailable && !isSubmitting && !isLoading && !packageLoading) {
-                              setFormData(prev => ({ ...prev, postAt: postType.type }));
-                            }
-                          }}
-                          style={{
-                            borderColor: isSelected ? style.color : '#e2e8f0',
-                            backgroundColor: isSelected ? style.bgColor : 'white'
-                          }}
-                        >
-                          <div className="post-type-header">
-                            <span className="post-type-icon">{style.icon}</span>
-                            <span className="post-type-name">{postType.name}</span>
-                            <span className={`post-type-remaining ${!isAvailable ? 'depleted' : ''}`}>
-                              {isAvailable ? `${postType.remaining} left` : 'Depleted'}
-                            </span>
-                          </div>
-                          <p className="post-type-description">{postType.description}</p>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="no-post-types">
-                      <span className="warning-icon">⚠️</span>
-                      <p>No post types available in your package</p>
-                    </div>
-                  )}
-                </div>
-                {formErrors.postAt && (
-                  <span className="error-message">{formErrors.postAt}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Location and Deadline row remains the same... */}
-            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="location" className="form-label">
                   Location <span className="required">*</span>
@@ -632,13 +658,15 @@ const CreateJobPage = ({
                   onChange={handleInputChange}
                   className={`form-input ${formErrors.location ? 'error' : ''}`}
                   placeholder="e.g. Ho Chi Minh City, Vietnam"
-                  disabled={isSubmitting || isLoading || packageLoading}
+                  disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                 />
                 {formErrors.location && (
                   <span className="error-message">{formErrors.location}</span>
                 )}
               </div>
+            </div>
 
+            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="deadline" className="form-label">
                   Application Deadline <span className="required">*</span>
@@ -651,16 +679,13 @@ const CreateJobPage = ({
                   onChange={handleInputChange}
                   className={`form-input ${formErrors.deadline ? 'error' : ''}`}
                   min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                  disabled={isSubmitting || isLoading || packageLoading}
+                  disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                 />
                 {formErrors.deadline && (
                   <span className="error-message">{formErrors.deadline}</span>
                 )}
               </div>
-            </div>
 
-            {/* Salary and Experience row remains the same... */}
-            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="salaryRange" className="form-label">
                   Salary Range
@@ -673,29 +698,83 @@ const CreateJobPage = ({
                   onChange={handleInputChange}
                   className="form-input"
                   placeholder="e.g. $1000 - $1500"
-                  disabled={isSubmitting || isLoading || packageLoading}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="experience" className="form-label">
-                  Experience Required
-                </label>
-                <input
-                  type="text"
-                  id="experience"
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  placeholder="e.g. 2+ years experience"
-                  disabled={isSubmitting || isLoading || packageLoading}
+                  disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                 />
               </div>
             </div>
+
+            <div className="form-group">
+              <label htmlFor="experience" className="form-label">
+                Experience Required
+              </label>
+              <input
+                type="text"
+                id="experience"
+                name="experience"
+                value={formData.experience}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="e.g. 2+ years experience"
+                disabled={isSubmitting || isLoading || packageLoading || !userPackage}
+              />
+            </div>
+
+            {/* ✅ Enhanced Post Type Selection */}
+            <div className="form-group">
+              <label className="form-label">
+                Post Type <span className="required">*</span>
+              </label>
+              <div className="post-type-selection">
+                {availablePostTypes.length > 0 ? (
+                  availablePostTypes.map(postType => {
+                    const style = getPostTypeStyle(postType.type);
+                    const isSelected = formData.postAt === postType.type;
+                    const isAvailable = postType.isAvailable;
+                    
+                    return (
+                      <div
+                        key={postType.type}
+                        className={`post-type-option ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                        onClick={() => {
+                          if (isAvailable && !isSubmitting && !isLoading && !packageLoading && userPackage) {
+                            setFormData(prev => ({ ...prev, postAt: postType.type }));
+                          }
+                        }}
+                        style={{
+                          borderColor: isSelected ? style.color : '#e2e8f0',
+                          backgroundColor: isSelected ? style.bgColor : 'white'
+                        }}
+                      >
+                        <div className="post-type-header">
+                          <span className="post-type-icon">{style.icon}</span>
+                          <span className="post-type-name">{postType.name}</span>
+                          <span className={`post-type-remaining ${!isAvailable ? 'depleted' : ''}`}>
+                            {postType.remaining} / {postType.limit}
+                          </span>
+                        </div>
+                        <p className="post-type-description">{postType.description}</p>
+                        {!isAvailable && (
+                          <div className="post-type-unavailable">
+                            <span>No posts remaining</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="no-post-types">
+                    <span className="warning-icon">⚠️</span>
+                    <p>No post types available in your package</p>
+                  </div>
+                )}
+              </div>
+              {formErrors.postAt && (
+                <span className="error-message">{formErrors.postAt}</span>
+              )}
+            </div>
           </div>
 
-          {/* Skills section remains the same... */}
+          {/* ✅ Skills Section */}
           <div className="form-section">
             <h3 className="section-title">🛠️ Required Skills</h3>
             <p className="section-description">
@@ -712,7 +791,7 @@ const CreateJobPage = ({
                       type="button"
                       className={`skill-item ${selectedSkills.some(s => s.id === skill.id) ? 'selected' : ''}`}
                       onClick={() => handleSkillToggle(skill)}
-                      disabled={isSubmitting || isLoading || packageLoading}
+                      disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                     >
                       <span className="skill-name">{skill.name}</span>
                       <span className="skill-description">{skill.description}</span>
@@ -732,7 +811,7 @@ const CreateJobPage = ({
                           type="button"
                           className="remove-skill"
                           onClick={() => handleSkillToggle(skill)}
-                          disabled={isSubmitting || isLoading || packageLoading}
+                          disabled={isSubmitting || isLoading || packageLoading || !userPackage}
                         >
                           ×
                         </button>
@@ -744,7 +823,7 @@ const CreateJobPage = ({
             </div>
           </div>
 
-          {/* ✅ Enhanced Error Display */}
+          {/* ✅ Error Display */}
           {(submitError || formErrors.package) && (
             <div className="submit-error">
               <span className="error-icon">⚠️</span>
@@ -760,7 +839,7 @@ const CreateJobPage = ({
             </div>
           )}
 
-          {/* ✅ Enhanced Form Actions */}
+          {/* ✅ Form Actions */}
           <div className="form-actions">
             <button
               type="button"
@@ -792,7 +871,7 @@ const CreateJobPage = ({
         </form>
       </div>
 
-      {/* Loading Overlay */}
+      {/* ✅ Loading Overlay */}
       {(isSubmitting || isLoading) && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
