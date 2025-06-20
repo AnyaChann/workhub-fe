@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../core/contexts/AuthContext';
+import ROUTES from '../../../../../core/routing/routeConstants';
 import './RecruiterAccountDropdown.css';
 
 const AccountDropdown = ({ onNavigate }) => {
@@ -33,34 +34,29 @@ const AccountDropdown = ({ onNavigate }) => {
 
   const handleAccount = () => {
     console.log('Navigate to Account Settings');
-    if (onNavigate) {
-      onNavigate('account'); // This will change the tab in DashboardLayout
-    }
+    // ✅ Sử dụng route từ ROUTES
+    navigate(ROUTES.RECRUITER.ACCOUNT.SETTINGS);
     setIsOpen(false);
-    // Don't use navigate - use onNavigate callback to change tab
   };
 
   const handleManageUsers = () => {
     console.log('Navigate to Manage Users');
-    if (onNavigate) {
-      onNavigate('manage-users'); // This will change the tab in DashboardLayout
-    }
+    // ✅ Sử dụng route từ ROUTES
+    navigate(ROUTES.RECRUITER.ACCOUNT.TEAM);
     setIsOpen(false);
   };
 
   const handleInventory = () => {
     console.log('Navigate to Inventory/Packages');
-    if (onNavigate) {
-      onNavigate('inventory'); // This will change the tab in DashboardLayout
-    }
+    // ✅ Sử dụng route từ ROUTES
+    navigate(ROUTES.RECRUITER.ACCOUNT.BILLING);
     setIsOpen(false);
   };
 
   const handleProfile = () => {
-    console.log('Navigate to Company Profile');
-    if (onNavigate) {
-      onNavigate('profile'); // This will change the tab in DashboardLayout
-    }
+    console.log('Navigate to User Profile');
+    // ✅ Sử dụng route từ ROUTES
+    navigate(ROUTES.RECRUITER.ACCOUNT.PROFILE);
     setIsOpen(false);
   };
 

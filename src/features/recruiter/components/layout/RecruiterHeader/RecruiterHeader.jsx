@@ -1,66 +1,37 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../../../../core/contexts/AuthContext';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ROUTES from '../../../../../core/routing/routeConstants';
 import './RecruiterHeader.css';
 import AccountDropdown from '../RecruiterAccountDropdown/RecruiterAccountDropdown';
 
-const DashboardHeader = ({ onNavigate, onCreateJob, currentTab, userType = 'recruiter' }) => {
-  const { getDashboardUrl, userRole } = useAuth();
+const RecruiterHeader = ({ onNavigate, onCreateJob }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleAccountNavigation = (tab) => {
-    console.log(`🔄 AccountDropdown navigation request: ${tab}`);
-    if (onNavigate) {
-      onNavigate(tab);
-    }
+  const getPageTitle = () => {
+    const path = location.pathname;
+
+    if (path.startsWith('/recruiter/dashboard/jobs/active')) return 'Active Jobs';
+    if (path.startsWith('/recruiter/dashboard/jobs/drafts')) return 'Draft Jobs';
+    if (path.startsWith('/recruiter/dashboard/jobs/expired')) return 'Expired Jobs';
+    if (path.startsWith('/recruiter/dashboard/jobs/archived')) return 'Archived Jobs';
+    if (path.startsWith('/recruiter/dashboard/candidates')) return 'Candidates';
+    if (path.startsWith('/recruiter/dashboard/company/profile')) return 'Company Profile';
+    if (path.startsWith('/recruiter/dashboard/company/reports')) return 'Reports & Analytics';
+    if (path.startsWith('/recruiter/dashboard/account/profile')) return 'User Profile';
+    if (path.startsWith('/recruiter/dashboard/account/settings')) return 'Account Settings';
+    if (path.startsWith('/recruiter/dashboard/account/team')) return 'Team Management';
+    if (path.startsWith('/recruiter/dashboard/account/billing')) return 'Billing & Packages';
+    return 'Recruiter Dashboard';
   };
 
-  // Get logo link based on user role
-  const getLogoLink = () => {
-    switch (userRole) {
-      case 'recruiter':
-        return ROUTES.RECRUITER.DASHBOARD;
-      case 'candidate':
-        return ROUTES.CANDIDATE.DASHBOARD;
-      case 'admin':
-        return ROUTES.ADMIN.DASHBOARD;
-      default:
-        return getDashboardUrl();
+  const handleCreateJob = () => {
+    if (onCreateJob) {
+      onCreateJob();
+    } else {
+      // ✅ Added direct navigation if onCreateJob isn't provided
+      navigate(ROUTES.RECRUITER.CREATE_JOB);
     }
-  };
-
-  // Get page title based on current tab and user type
-  const getPageTitle = (tab) => {
-    const titles = {
-      recruiter: {
-        'active-jobs': 'Active Jobs',
-        'drafts': 'Draft Jobs',
-        'expired': 'Expired Jobs',
-        'archived': 'Archived Jobs',
-        'candidates': 'Candidates',
-        'company': 'Company Profile',
-        'reports': 'Reports & Analytics',
-        'account': 'Account Settings',
-        'manage-users': 'Manage Team',
-        'inventory': 'Packages & Billing',
-        'profile': 'User Profile'
-      },
-      candidate: {
-        'jobs': 'Job Search',
-        'applications': 'My Applications',
-        'profile': 'My Profile',
-        'account': 'Account Settings'
-      },
-      admin: {
-        'users': 'User Management',
-        'jobs': 'Job Management',
-        'companies': 'Company Management',
-        'reports': 'System Reports',
-        'settings': 'System Settings'
-      }
-    };
-    
-    return titles[userType]?.[tab] || `${userType.charAt(0).toUpperCase() + userType.slice(1)} Dashboard`;
   };
 
   return (
@@ -68,38 +39,30 @@ const DashboardHeader = ({ onNavigate, onCreateJob, currentTab, userType = 'recr
       <div className="header-content">
         <div className="header-left">
           <div className="logo">
-            <Link to={getLogoLink()} className='logo-link'>
+            <Link to={ROUTES.RECRUITER.DASHBOARD} className="logo-link">
               <span className="logo-text">WorkHub®</span>
             </Link>
           </div>
         </div>
         
         <div className="header-center">
-          <h1 className="dashboard-title">
-            {getPageTitle(currentTab)}
-          </h1>
+          <h1 className="dashboard-title">{getPageTitle()}</h1>
         </div>
         
         <div className="header-right">
-          {/* Show create job button only for recruiters */}
-          {userType === 'recruiter' && onCreateJob && (
-            <button 
-              className="create-job-btn"
-              onClick={onCreateJob}
-              title="Create new job posting"
-            >
-              + Create Job
-            </button>
-          )}
-          
-          <AccountDropdown 
-            onNavigate={handleAccountNavigation} 
-            userType={userType}
-          />
+          {/* ✅ Added Create Job button with direct navigation */}
+          <button 
+            className="create-job-btn"
+            onClick={handleCreateJob}
+            title="Create new job posting"
+          >
+            + Create Job
+          </button>
+          <AccountDropdown />
         </div>
       </div>
     </header>
   );
 };
 
-export default DashboardHeader;
+export default RecruiterHeader;

@@ -18,7 +18,7 @@
   /* margin-top: auto; */
 }
 
-.section-header {
+.dashboard-sidebar .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
