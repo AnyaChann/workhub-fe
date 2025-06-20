@@ -51,7 +51,7 @@
   top: 100%;
   right: 0;
   background: white;
-  border: 1px solid #e0e0e0;
+  /* border: 1px solid #e0e0e0; */
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 280px;
@@ -91,7 +91,6 @@
 .user-email {
   font-size: 12px;
   color: #666;
-  margin-bottom: 8px;
 }
 
 .company-name {
@@ -203,8 +202,8 @@
   }
   
   .company-section {
-    background-color: #e6e6e6;
-    border-bottom-color: #808080;
+    /* background-color: #e6e6e6; */
+    /* border-bottom-color: #808080; */
   }
   
   .user-name {

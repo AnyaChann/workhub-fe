@@ -1,44 +1,35 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../../../core/contexts/AuthContext';
+import { companyService } from '../../../services/companiesService';
 import { userService } from '../../../services/userService';
 import './AccountSettingsPage.css';
 import EditCompanyModal from '../../../components/Modal/EditCompanyModal/EditCompanyModal';
 import EditBillingModal from '../../../components/Modal/EditBillingModal/EditBillingModal';
+import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import { PageLoadingSpinner, InlineLoadingSpinner } from '../../../../../shared/components/LoadingSpinner/LoadingSpinner';
 
-const Account = () => {
+const AccountSettingsPage = () => {
   const { user, email } = useAuth();
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [companyLoading, setCompanyLoading] = useState(true);
+  const [billingLoading, setBillingLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
   const [companyData, setCompanyData] = useState({
     id: '',
-    companyName: '',
-    abn: '',
-    accountType: 'Employer',
+    name: '',
     industry: '',
-    companySize: '',
-    website: '',
+    location: '',
     description: '',
-    logoUrl: '',
-    address: {
-      street: '',
-      suburb: '',
-      state: '',
-      postCode: '',
-      country: 'Australia'
-    },
-    contact: {
-      name: '',
-      email: '',
-      phone: ''
-    },
-    createdAt: '',
-    updatedAt: '',
-    status: 'active'
+    website: '',
+    logo: [],
+    inspection: 'none',
+    inspectionStatus: 'none',
+    status: 'active',
+    createdAt: ''
   });
 
   const [billingData, setBillingData] = useState({
@@ -53,57 +44,87 @@ const Account = () => {
     country: 'Australia'
   });
 
-  // Load company and billing data when component mounts
+  // Load company data when component mounts
   useEffect(() => {
-    loadAccountData();
+    loadCompanyData();
+    loadBillingData();
   }, [user]);
 
-  const loadAccountData = async () => {
-    setLoading(true);
+  const loadCompanyData = async () => {
+    setCompanyLoading(true);
+    setError(null);
+
     try {
-      // Set basic data from user context
+      // Khởi tạo với dữ liệu cơ bản từ context
       setCompanyData(prev => ({
         ...prev,
-        accountId: user?.id?.toString() || '',
-        companyName: user?.companyName || 'WorkHub Company'
+        name: user?.companyName || ''
       }));
 
+      // Lấy dữ liệu công ty từ API
+      if (user?.id) {
+        try {
+          console.log('Fetching company data...');
+          
+          // Thử lấy công ty của người dùng
+          const companyResponse = await companyService.getCurrentCompany();
+          
+          if (companyResponse) {
+            console.log('Company data loaded:', companyResponse);
+            
+            setCompanyData({
+              id: companyResponse.id,
+              name: companyResponse.name,
+              industry: companyResponse.industry || '',
+              location: companyResponse.location || '',
+              description: companyResponse.description || '',
+              website: companyResponse.website || '',
+              logo: companyResponse.logo || [],
+              inspection: companyResponse.inspection || 'none',
+              inspectionStatus: companyResponse.inspectionStatus || 'none',
+              status: companyResponse.status || 'active',
+              createdAt: companyResponse.createdAt || new Date().toISOString()
+            });
+          }
+        } catch (apiError) {
+          console.log('Error loading company data:', apiError);
+          // Không hiển thị lỗi cho người dùng vì đây có thể là người dùng mới
+          // chưa có công ty
+        }
+      }
+    } catch (error) {
+      console.error('Error in company data loading flow:', error);
+      setError('Failed to load company data. Please try again later.');
+    } finally {
+      setCompanyLoading(false);
+    }
+  };
+
+  const loadBillingData = async () => {
+    setBillingLoading(true);
+    
+    try {
+      // Khởi tạo với email từ context
       setBillingData(prev => ({
         ...prev,
         email: email || ''
       }));
 
-      // Try to load company data from API
-      try {
-        const companyResponse = await userService.getCompanyInfo();
-        if (companyResponse) {
-          setCompanyData(prev => ({
-            ...prev,
-            ...companyResponse
-          }));
+      // Lấy dữ liệu thanh toán từ API
+      if (user?.id) {
+        try {
+          const billingResponse = await userService.getBillingInfo();
+          
+          if (billingResponse) {
+            setBillingData(billingResponse);
+          }
+        } catch (apiError) {
+          console.log('Billing API load failed:', apiError);
+          // Không hiển thị lỗi với người dùng
         }
-      } catch (apiError) {
-        console.log('Company API load failed, using default data:', apiError);
       }
-
-      // Try to load billing data from API
-      try {
-        const billingResponse = await userService.getBillingHistory();
-        if (billingResponse?.billingInfo) {
-          setBillingData(prev => ({
-            ...prev,
-            ...billingResponse.billingInfo
-          }));
-        }
-      } catch (apiError) {
-        console.log('Billing API load failed, using default data:', apiError);
-      }
-
-    } catch (error) {
-      console.error('Error loading account data:', error);
-      setError('Failed to load account data');
     } finally {
-      setLoading(false);
+      setBillingLoading(false);
     }
   };
 
@@ -125,31 +146,53 @@ const Account = () => {
     setSuccess(null);
 
     try {
-      // Update company data via API
-      const updatedCompany = await userService.updateCompanyInfo(newData);
+      let updatedCompany;
+      
+      // Nếu đã có ID công ty, cập nhật
+      if (companyData.id) {
+        updatedCompany = await companyService.updateCompany({
+          id: companyData.id,
+          name: newData.name,
+          industry: newData.industry,
+          location: newData.location,
+          description: newData.description,
+          website: newData.website
+        });
+      } else {
+        // Nếu chưa có ID, tạo mới
+        updatedCompany = await companyService.createCompany({
+          name: newData.name,
+          industry: newData.industry,
+          location: newData.location,
+          description: newData.description,
+          website: newData.website
+        });
+      }
+      
+      // Cập nhật logo nếu có
+      if (newData.logoFile && updatedCompany?.id) {
+        try {
+          await companyService.uploadCompanyLogo(updatedCompany.id, newData.logoFile);
+        } catch (logoError) {
+          console.error('Error uploading logo:', logoError);
+          setSuccess('Company details updated but logo upload failed.');
+        }
+      }
 
-      // Update local state
+      // Cập nhật state với dữ liệu mới
       setCompanyData(prev => ({
         ...prev,
-        ...newData,
         ...updatedCompany
       }));
 
       setSuccess('Company details updated successfully!');
-      console.log('Company data saved:', newData);
-
+      setShowCompanyModal(false);
+      
       // Auto-clear success message
       setTimeout(() => setSuccess(null), 3000);
-
     } catch (error) {
       console.error('Save company error:', error);
-      setError(error.response?.data?.message || 'Failed to update company details');
-
-      // Update local state anyway for better UX
-      setCompanyData(prev => ({
-        ...prev,
-        ...newData
-      }));
+      setError(error.message || 'Failed to update company details');
     } finally {
       setLoading(false);
     }
@@ -161,229 +204,309 @@ const Account = () => {
     setSuccess(null);
 
     try {
-      // Update billing data via API (you'll need to create this endpoint)
-      // const updatedBilling = await userService.updateBillingInfo(newData);
+      // Update billing data via API
+      const updatedBilling = await userService.updateBillingInfo(newData);
 
-      // For now, just update local state
-      setBillingData(newData);
+      // Update local state
+      setBillingData(prev => ({
+        ...prev,
+        ...newData,
+        ...updatedBilling
+      }));
+
       setSuccess('Billing information updated successfully!');
-      console.log('Billing data saved:', newData);
+      setShowBillingModal(false);
 
       // Auto-clear success message
       setTimeout(() => setSuccess(null), 3000);
-
     } catch (error) {
       console.error('Save billing error:', error);
-      setError(error.response?.data?.message || 'Failed to update billing information');
-
-      // Update local state anyway
-      setBillingData(newData);
+      setError(error.message || 'Failed to update billing information');
     } finally {
       setLoading(false);
     }
   };
 
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not available';
+
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  // Helper to get company status badge class
+  const getStatusBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'status-badge active';
+      case 'pending': return 'status-badge pending';
+      case 'inactive': return 'status-badge inactive';
+      default: return 'status-badge';
+    }
+  };
+
+  // Helper to get prestige badge class
+  const getPrestigeBadgeClass = (inspection) => {
+    return inspection === 'prestige' ? 'prestige-badge active' : 'prestige-badge inactive';
+  };
+
+  // If entire page is loading for first time
+  const isFullPageLoading = companyLoading && billingLoading;
+
+  if (isFullPageLoading) {
+    return <PageLoadingSpinner message="Loading account settings..." />;
+  }
+
   return (
-    <main className="dashboard-main">
-      <div className="main-header">
-        <h1 className="page-title">Account</h1>
-        {user && (
-          <div className="user-context">
-            <span className="user-id">ID: {user.id}</span>
-            <span className="user-role">{user.role?.toUpperCase()}</span>
-          </div>
-        )}
-      </div>
+    <div className="account-settings-page">
+      <PageHeader
+        title="Account Settings"
+        subtitle="Manage your company information and billing details"
+        actions={
+          <button
+            onClick={() => {
+              loadCompanyData();
+              loadBillingData();
+            }}
+            className="refresh-btn"
+            disabled={companyLoading || billingLoading}
+          >
+            {companyLoading || billingLoading ? 'Refreshing...' : '🔄 Refresh'}
+          </button>
+        }
+      />
 
       {/* Status Messages */}
       {error && (
         <div className="alert alert-error">
-          <span className="alert-icon">âš ï¸</span>
-          {error}
+          <span className="alert-icon">⚠️</span>
+          <div className="alert-content">
+            <strong>Error:</strong> {error}
+          </div>
+          <button onClick={() => setError(null)} className="alert-close">×</button>
         </div>
       )}
 
       {success && (
         <div className="alert alert-success">
-          <span className="alert-icon"></span>
-          {success}
+          <span className="alert-icon">✅</span>
+          <div className="alert-content">
+            <strong>Success:</strong> {success}
+          </div>
+          <button onClick={() => setSuccess(null)} className="alert-close">×</button>
         </div>
       )}
-
-      {/* {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <span>Updating account...</span>
-          </div>
-        </div>
-      )} */}
 
       <div className="account-content">
         <div className="account-sections">
           {/* Company Details Section */}
           <div className="account-section">
             <div className="section-header">
-              <h2 className="section-title">Company Details</h2>
-              <button
+              <h2 className="section-title">
+                <span className="section-icon">🏢</span>
+                Company Details
+              </h2>
+              {/* <button
                 className="edit-btn"
                 onClick={handleEditCompanyDetails}
-                disabled={loading}
+                disabled={loading || companyLoading}
               >
-                {loading ? (
-                  <InlineLoadingSpinner message="Saving..." size="small" />
-                ) : (
-                  'Edit'
-                )}
-              </button>
+                {loading ? <InlineLoadingSpinner size="small" /> : '✏️ Edit'}
+              </button> */}
             </div>
 
             <div className="section-content">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">COMPANY NAME</label>
-                  <div className="form-value">{companyData.companyName || 'None'}</div>
+              {companyLoading ? (
+                <div className="loading-placeholder">
+                  <InlineLoadingSpinner message="Loading company details..." />
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">ABN</label>
-                  <div className="form-value">{companyData.abn || 'None'}</div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">ACCOUNT TYPE</label>
-                  <div className="form-value">
-                    <span className="account-type-badge">
-                      {companyData.accountType}
-                    </span>
+              ) : (
+                <>
+                  <div className="company-logo-section">
+                    {Array.isArray(companyData.logo) && companyData.logo.length > 0 ? (
+                      <img 
+                        src={companyData.logo[0]} 
+                        alt={companyData.name} 
+                        className="company-logo"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : (
+                      <div className="company-logo-placeholder">
+                        <span>🏢</span>
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                <div className="form-group">
-                  <label className="form-label">ACCOUNT ID</label>
-                  <div className="form-value">{companyData.accountId}</div>
-                </div>
+                  <div className="company-details">
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label className="form-label">COMPANY NAME</label>
+                        <div className="form-value">{companyData.name || 'Not set'}</div>
+                      </div>
 
-                <div className="form-group">
-                  <label className="form-label">INDUSTRY</label>
-                  <div className="form-value">{companyData.industry || 'None'}</div>
-                </div>
+                      <div className="form-group">
+                        <label className="form-label">INDUSTRY</label>
+                        <div className="form-value">{companyData.industry || 'Not set'}</div>
+                      </div>
 
-                <div className="form-group">
-                  <label className="form-label">COMPANY SIZE</label>
-                  <div className="form-value">{companyData.companySize || 'None'}</div>
-                </div>
+                      <div className="form-group">
+                        <label className="form-label">LOCATION</label>
+                        <div className="form-value">{companyData.location || 'Not set'}</div>
+                      </div>
 
-                <div className="form-group full-width">
-                  <label className="form-label">WEBSITE</label>
-                  <div className="form-value">
-                    {companyData.website ? (
-                      <a
-                        href={companyData.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="website-link"
-                      >
-                        {companyData.website}
-                      </a>
-                    ) : 'None'}
+                      <div className="form-group">
+                        <label className="form-label">STATUS</label>
+                        <div className="form-value">
+                          <span className={getStatusBadgeClass(companyData.status)}>
+                            {companyData.status?.toUpperCase() || 'UNKNOWN'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">PRESTIGE RATING</label>
+                        <div className="form-value">
+                          <span className={getPrestigeBadgeClass(companyData.inspection)}>
+                            {companyData.inspection === 'prestige' ? 'PRESTIGE EMPLOYER' : 'STANDARD'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">MEMBER SINCE</label>
+                        <div className="form-value">{formatDate(companyData.createdAt)}</div>
+                      </div>
+
+                      <div className="form-group full-width">
+                        <label className="form-label">WEBSITE</label>
+                        <div className="form-value">
+                          {companyData.website ? (
+                            <a
+                              href={companyData.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="website-link"
+                            >
+                              {companyData.website}
+                            </a>
+                          ) : 'Not set'}
+                        </div>
+                      </div>
+
+                      <div className="form-group full-width">
+                        <label className="form-label">DESCRIPTION</label>
+                        <div className="form-value description">
+                          {companyData.description || 'No company description available.'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="form-group full-width">
-                  <label className="form-label">DESCRIPTION</label>
-                  <div className="form-value description">
-                    {companyData.description || 'None'}
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Billing Info Section */}
-          <div className="account-section">
+         
+          {/* <div className="account-section">
             <div className="section-header">
-              <h2 className="section-title">Billing Information</h2>
+              <h2 className="section-title">
+                <span className="section-icon">💳</span>
+                Billing Information
+              </h2>
               <button
                 className="edit-btn"
                 onClick={handleEditBillingInfo}
-                disabled={loading}
+                disabled={loading || billingLoading}
               >
-                {loading ? (
-                  <InlineLoadingSpinner message="Saving..." size="small" />
-                ) : (
-                  'Edit'
-                )}
+                {loading ? <InlineLoadingSpinner size="small" /> : '✏️ Edit'}
               </button>
             </div>
 
             <div className="section-content">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">FIRST NAME</label>
-                  <div className="form-value">{billingData.firstName || 'None'}</div>
+              {billingLoading ? (
+                <div className="loading-placeholder">
+                  <InlineLoadingSpinner message="Loading billing information..." />
                 </div>
+              ) : (
+                <>
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label className="form-label">FIRST NAME</label>
+                      <div className="form-value">{billingData.firstName || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">LAST NAME</label>
-                  <div className="form-value">{billingData.lastName || 'None'}</div>
-                </div>
+                    <div className="form-group">
+                      <label className="form-label">LAST NAME</label>
+                      <div className="form-value">{billingData.lastName || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">BILLING PHONE</label>
-                  <div className="form-value">{billingData.billingPhone || 'None'}</div>
-                </div>
+                    <div className="form-group">
+                      <label className="form-label">BILLING PHONE</label>
+                      <div className="form-value">{billingData.billingPhone || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">EMAIL</label>
-                  <div className="form-value">{billingData.email || 'None'}</div>
-                </div>
+                    <div className="form-group">
+                      <label className="form-label">EMAIL</label>
+                      <div className="form-value">{billingData.email || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group full-width">
-                  <label className="form-label">BILLING ADDRESS</label>
-                  <div className="form-value">{billingData.billingAddress || 'None'}</div>
-                </div>
+                    <div className="form-group full-width">
+                      <label className="form-label">BILLING ADDRESS</label>
+                      <div className="form-value">{billingData.billingAddress || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">SUBURB</label>
-                  <div className="form-value">{billingData.suburb || 'None'}</div>
-                </div>
+                    <div className="form-group">
+                      <label className="form-label">SUBURB</label>
+                      <div className="form-value">{billingData.suburb || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">STATE</label>
-                  <div className="form-value">{billingData.state || 'None'}</div>
-                </div>
+                    <div className="form-group">
+                      <label className="form-label">STATE</label>
+                      <div className="form-value">{billingData.state || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">POST CODE</label>
-                  <div className="form-value">{billingData.postCode || 'None'}</div>
-                </div>
+                    <div className="form-group">
+                      <label className="form-label">POST CODE</label>
+                      <div className="form-value">{billingData.postCode || 'Not set'}</div>
+                    </div>
 
-                <div className="form-group">
-                  <label className="form-label">COUNTRY</label>
-                  <div className="form-value">{billingData.country || 'None'}</div>
-                </div>
-              </div>
+                    <div className="form-group">
+                      <label className="form-label">COUNTRY</label>
+                      <div className="form-value">{billingData.country || 'Australia'}</div>
+                    </div>
+                  </div>
 
-              {/* Billing Status */}
-              <div className="billing-status">
-                <div className="status-item">
-                  <span className="status-label">Billing Status:</span>
-                  <span className="status-badge active">Active</span>
-                </div>
-                <div className="status-item">
-                  <span className="status-label">Payment Method:</span>
-                  <span className="status-value">Credit Card ending in ****</span>
-                </div>
-                <div className="status-item">
-                  <span className="status-label">Next billing date:</span>
-                  <span className="status-value">
-                    {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
+               
+                  <div className="billing-status">
+                    <div className="status-item">
+                      <span className="status-label">Billing Status:</span>
+                      <span className="status-badge active">Active</span>
+                    </div>
+                    <div className="status-item">
+                      <span className="status-label">Payment Method:</span>
+                      <span className="status-value">Credit Card ending in ****</span>
+                    </div>
+                    <div className="status-item">
+                      <span className="status-label">Next billing date:</span>
+                      <span className="status-value">
+                        {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -403,8 +526,8 @@ const Account = () => {
         onSave={handleSaveBillingData}
         loading={loading}
       />
-    </main>
+    </div>
   );
 };
 
-export default Account;
+export default AccountSettingsPage;

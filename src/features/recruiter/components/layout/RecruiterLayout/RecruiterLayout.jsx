@@ -75,7 +75,7 @@ const RecruiterLayout = () => {
 
   // ✅ Enhanced modal handlers
   const handleCreateJob = () => {
-    navigate(ROUTES.RECRUITER.JOBS.CREATE);
+     navigate(ROUTES.RECRUITER.CREATE_JOB);
   };
 
   const handleCreateJobModal = () => {

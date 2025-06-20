@@ -81,7 +81,7 @@ const AccountDropdown = ({ onNavigate }) => {
   // Get user avatar or fallback
   const userAvatar = getUserAvatar();
   const displayName = fullname || email || 'User';
-  const companyName = user?.companyName || user?.company?.name || 'WORKHUB COMPANY';
+  const companyName = user?.companyName || user?.company?.name || 'Not set';
 
   return (
     <div className="account-dropdown" ref={dropdownRef}>
@@ -129,7 +129,7 @@ const AccountDropdown = ({ onNavigate }) => {
               <div className="user-name">{displayName}</div>
               <div className="user-email">{email}</div>
             </div>
-            <div className="company-name">{companyName.toUpperCase()}</div>
+            {/* <div className="company-name">{companyName.toUpperCase()}</div> */}
             <div className="user-role">{userRole?.toUpperCase()}</div>
           </div>
 
@@ -141,11 +141,11 @@ const AccountDropdown = ({ onNavigate }) => {
             <span className="item-shortcut">Company</span>
           </button>
 
-          <button className="account-dropdown-item" onClick={handleManageUsers}>
+          {/* <button className="account-dropdown-item" onClick={handleManageUsers}>
             <span className="item-icon">👥</span>
             <span className="item-text">Manage Users</span>
             <span className="item-shortcut">Team</span>
-          </button>
+          </button> */}
 
           <button className="account-dropdown-item" onClick={handleInventory}>
             <span className="item-icon">📦</span>
