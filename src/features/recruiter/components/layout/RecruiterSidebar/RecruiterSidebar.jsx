@@ -73,14 +73,14 @@ const RecruiterSidebar = ({ onTabChange, onCreateJob }) => {
             <span className="nav-icon">⏰</span>
             <span className="nav-text">Expired</span>
           </button>
-          <button 
+          {/* <button 
             className={`nav-item ${isActiveTab(ROUTES.RECRUITER.ARCHIVED_JOBS) ? 'active' : ''}`}
             onClick={() => handleTabChange(ROUTES.RECRUITER.ARCHIVED_JOBS)}
             title="View archived job postings"
           >
             <span className="nav-icon">📦</span>
             <span className="nav-text">Archived</span>
-          </button>
+          </button> */}
         </nav>
       </div>
 

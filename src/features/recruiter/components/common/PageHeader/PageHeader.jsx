@@ -29,7 +29,7 @@ const PageHeader = ({
         {/* Additional controls if provided */}
         {additionalControls}
 
-        <label className="toggle-switch">
+        {/* <label className="toggle-switch">
           <input 
             type="checkbox" 
             checked={showOnlyMyJobs}
@@ -37,7 +37,7 @@ const PageHeader = ({
           />
           <span className="toggle-slider"></span>
           <span className="toggle-label">Only jobs posted by me</span>
-        </label>
+        </label> */}
       </div>
     </div>
   );

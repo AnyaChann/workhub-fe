@@ -1,4 +1,5 @@
 import api from '../../../shared/utils/helpers/api';
+import { servicePackageService } from './servicePackageService';
 
 export const packageService = {
   // ✅ Get user's packages by userId (updated to use correct endpoint and response format)
@@ -293,22 +294,91 @@ export const packageService = {
   },
 
   // ✅ Purchase a package
-  purchasePackage: async (packageId, paymentData) => {
+  // ✅ Mua gói dịch vụ sử dụng API test
+  purchasePackage: async (userId, packageId) => {
     try {
-      console.log('💳 Purchasing package:', packageId, paymentData);
+      console.log('💰 Purchasing package for user:', userId, 'Package:', packageId);
       
-      const response = await api.post('/user-packages', {
-        servicePackageId: packageId,
-        ...paymentData
-      });
+      // Lấy thông tin gói để biết giá
+      const packageInfo = await servicePackageService.getPackageById(packageId);
+      if (!packageInfo) {
+        throw new Error('Package not found');
+      }
       
-      console.log('✅ Package purchased successfully:', response);
-      return response?.data || response;
+      const price = packageInfo.price || 499000; // Fallback price nếu API không trả về
+      const description = `Purchase: ${packageInfo.name || 'Package'}`;
+      
+      // Gọi API test payment
+      const response = await servicePackageService.purchasePackageTest(
+        packageId, 
+        price, 
+        description
+      );
+      
+      return {
+        success: true,
+        data: response,
+        message: `Package ${packageInfo.name || 'Package'} purchased successfully!`
+      };
+      
     } catch (error) {
       console.error('❌ Error purchasing package:', error);
-      throw error;
+      
+      // Trả về object với các thông tin chi tiết về lỗi
+      return {
+        success: false,
+        error: error.message || 'Failed to purchase package',
+        details: error.response?.data || {},
+        statusCode: error.response?.status || 500
+      };
     }
   },
+
+  // ✅ Gia hạn gói dịch vụ sử dụng API test
+  renewPackage: async (userId, userPackageId) => {
+    try {
+      console.log('🔄 Renewing package for user:', userId, 'UserPackage:', userPackageId);
+      
+      // Lấy thông tin gói người dùng đang sử dụng
+      const userPackageInfo = await servicePackageService.getUserPackageById(userPackageId);
+      if (!userPackageInfo) {
+        throw new Error('User package not found');
+      }
+      
+      const packageId = userPackageInfo.servicePackage?.id;
+      if (!packageId) {
+        throw new Error('Invalid package reference');
+      }
+      
+      const price = userPackageInfo.price || userPackageInfo.servicePackage?.price || 499000;
+      const packageName = userPackageInfo.servicePackage?.name || 'Package';
+      const description = `Renewal: ${packageName}`;
+      
+      // Gọi API test renewal
+      const response = await servicePackageService.renewPackageTest(
+        packageId,
+        price,
+        description
+      );
+      
+      return {
+        success: true,
+        data: response,
+        message: `Package ${packageName} renewed successfully!`
+      };
+      
+    } catch (error) {
+      console.error('❌ Error renewing package:', error);
+      
+      // Trả về object với các thông tin chi tiết về lỗi
+      return {
+        success: false,
+        error: error.message || 'Failed to renew package',
+        details: error.response?.data || {},
+        statusCode: error.response?.status || 500
+      };
+    }
+    },
 
   // ✅ Enhanced package validation
   validatePackageForJobPosting: (userPackage, postType = 'standard') => {

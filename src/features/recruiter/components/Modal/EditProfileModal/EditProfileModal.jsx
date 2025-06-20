@@ -1,157 +1,240 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './EditProfileModal.css';
 
-const EditProfileModal = ({ isOpen, onClose, profileData, onSave }) => {
+const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => {
+  // Cập nhật state để phù hợp với cấu trúc dữ liệu của API
   const [formData, setFormData] = useState({
-    displayPicture: profileData?.displayPicture || null,
-    firstName: profileData?.firstName || '',
-    lastName: profileData?.lastName || '',
-    email: profileData?.email || 'bachct504@gmail.com',
-    contactNumber: profileData?.contactNumber || ''
+    fullname: '',
+    email: '',
+    phone: '',
+    avatarFile: null,
+    avatarPreview: null
   });
   
-  const fileInputRef = useRef(null);
-
+  const [formErrors, setFormErrors] = useState({});
+  
+  // Cập nhật formData khi profileData thay đổi
+  useEffect(() => {
+    if (isOpen && profileData) {
+      setFormData({
+        fullname: profileData.fullname || '',
+        email: profileData.email || '',
+        phone: profileData.phone || '',
+        avatarFile: null,
+        avatarPreview: profileData.avatar || null
+      });
+      setFormErrors({});
+    }
+  }, [isOpen, profileData]);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData(prev => ({
-          ...prev,
-          displayPicture: event.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+    
+    // Clear error when field is edited
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: null
+      }));
     }
   };
-
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleRemoveImage = () => {
+  
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Kiểm tra kích thước và loại file
+    if (file.size > 5 * 1024 * 1024) {
+      setFormErrors(prev => ({
+        ...prev,
+        avatar: 'Image size must be less than 5MB'
+      }));
+      return;
+    }
+    
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      setFormErrors(prev => ({
+        ...prev,
+        avatar: 'Only JPG, PNG, and GIF formats are allowed'
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      displayPicture: null
+      avatarFile: file,
+      avatarPreview: URL.createObjectURL(file)
     }));
+    
+    // Clear avatar error if exists
+    if (formErrors.avatar) {
+      setFormErrors(prev => ({
+        ...prev,
+        avatar: null
+      }));
+    }
   };
-
+  
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.fullname.trim()) {
+      errors.fullname = 'Full name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email is invalid';
+    }
+    
+    if (formData.phone && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im.test(formData.phone)) {
+      errors.phone = 'Phone number is invalid';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    
+    if (validateForm()) {
+      onSave(formData);
+    }
   };
-
+  
   if (!isOpen) return null;
-
+  
   return (
     <div className="modal-overlay">
-      <div className="modal-content profile-modal">
+      <div className="modal-content">
         <div className="modal-header">
-          <h2 className="modal-title">Edit profile</h2>
-          <button className="close-btn" onClick={onClose}>
-            ✕
-          </button>
+          <h2>Edit Profile</h2>
+          <button className="close-btn" onClick={onClose} disabled={loading}>×</button>
         </div>
         
         <form onSubmit={handleSubmit} className="modal-form">
-          <div className="profile-picture-upload">
-            <label className="form-label">Display picture</label>
-            <div className="picture-upload-container">
-              <div className="picture-preview" onClick={handleImageClick}>
-                {formData.displayPicture ? (
-                  <img src={formData.displayPicture} alt="Profile preview" />
-                ) : (
-                  <div className="default-preview">
-                    <span className="upload-icon">📷</span>
-                    <span className="upload-text">Click to upload</span>
-                  </div>
-                )}
-              </div>
-              <div className="picture-actions">
-                <button type="button" className="upload-btn" onClick={handleImageClick}>
-                  Choose file
-                </button>
-                {formData.displayPicture && (
-                  <button type="button" className="remove-btn" onClick={handleRemoveImage}>
-                    Remove
-                  </button>
-                )}
-              </div>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-            />
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">First name</label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="Enter first name"
-                className="form-input"
-              />
+          <div className="avatar-upload">
+            <div className="avatar-preview">
+              {formData.avatarPreview ? (
+                <img 
+                  src={formData.avatarPreview}
+                  alt="Avatar Preview"
+                  className="avatar-image"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : (
+                <div className="avatar-placeholder">
+                  <span>👤</span>
+                </div>
+              )}
             </div>
             
-            <div className="form-group">
-              <label className="form-label">Last name</label>
+            <div className="upload-actions">
+              <label htmlFor="avatar-input" className="upload-btn">
+                {formData.avatarFile ? 'Change Photo' : 'Upload Photo'}
+              </label>
               <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="Enter last name"
-                className="form-input"
+                id="avatar-input"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                disabled={loading}
+                style={{ display: 'none' }}
               />
+              {formData.avatarFile && (
+                <button
+                  type="button"
+                  className="remove-btn"
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    avatarFile: null,
+                    avatarPreview: profileData.avatar || null
+                  }))}
+                  disabled={loading}
+                >
+                  Remove
+                </button>
+              )}
             </div>
+            
+            {formErrors.avatar && (
+              <div className="error-message">{formErrors.avatar}</div>
+            )}
           </div>
           
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label htmlFor="fullname">Full Name</label>
+            <input
+              type="text"
+              id="fullname"
+              name="fullname"
+              value={formData.fullname}
+              onChange={handleInputChange}
+              className={formErrors.fullname ? 'error' : ''}
+              disabled={loading}
+            />
+            {formErrors.fullname && (
+              <div className="error-message">{formErrors.fullname}</div>
+            )}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
             <input
               type="email"
+              id="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="Enter email address"
-              className="form-input"
-              required
+              className={formErrors.email ? 'error' : ''}
+              disabled={loading}
             />
+            {formErrors.email && (
+              <div className="error-message">{formErrors.email}</div>
+            )}
           </div>
           
           <div className="form-group">
-            <label className="form-label">Contact number</label>
+            <label htmlFor="phone">Phone Number</label>
             <input
               type="tel"
-              name="contactNumber"
-              value={formData.contactNumber}
+              id="phone"
+              name="phone"
+              value={formData.phone}
               onChange={handleInputChange}
-              placeholder="Enter contact number"
-              className="form-input"
+              className={formErrors.phone ? 'error' : ''}
+              placeholder="e.g. +84123456789"
+              disabled={loading}
             />
+            {formErrors.phone && (
+              <div className="error-message">{formErrors.phone}</div>
+            )}
           </div>
           
-          <div className="modal-actions">
-            <button type="submit" className="save-btn">
-              <span className="save-icon">💾</span>
-              Save
+          <div className="modal-footer">
+            <button 
+              type="button" 
+              className="cancel-btn" 
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

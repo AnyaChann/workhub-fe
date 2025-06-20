@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../../../core/contexts/AuthContext';
-import { userService } from '../../../../../shared/utils/helpers/userService';
+import { userService } from '../../../services/userService';
 import './AccountSettingsPage.css';
 import EditCompanyModal from '../../../components/Modal/EditCompanyModal/EditCompanyModal';
 import EditBillingModal from '../../../components/Modal/EditBillingModal/EditBillingModal';

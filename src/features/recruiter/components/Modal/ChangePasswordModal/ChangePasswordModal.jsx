@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ChangePasswordModal.css';
 
-const ChangePasswordModal = ({ isOpen, onClose, onSave }) => {
+const ChangePasswordModal = ({ isOpen, onClose, onSave, loading }) => {
   const [formData, setFormData] = useState({
-    currentPassword: '',
+    currentPassword: '', // Changed from oldPassword to currentPassword
     newPassword: '',
     confirmPassword: ''
   });
   
-  const [errors, setErrors] = useState({});
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  });
-
+  const [formErrors, setFormErrors] = useState({});
+  
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setFormErrors({});
+    }
+  }, [isOpen]);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -22,178 +29,130 @@ const ChangePasswordModal = ({ isOpen, onClose, onSave }) => {
       [name]: value
     }));
     
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
+    // Clear error when field is edited
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
         ...prev,
-        [name]: ''
+        [name]: null
       }));
     }
   };
-
-  const togglePasswordVisibility = (field) => {
-    setShowPasswords(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  };
-
+  
   const validateForm = () => {
-    const newErrors = {};
+    const errors = {};
     
     if (!formData.currentPassword) {
-      newErrors.currentPassword = 'Current password is required';
+      errors.currentPassword = 'Current password is required';
     }
     
     if (!formData.newPassword) {
-      newErrors.newPassword = 'New password is required';
+      errors.newPassword = 'New password is required';
     } else if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters';
+      errors.newPassword = 'Password must be at least 8 characters';
     }
     
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      errors.confirmPassword = 'Please confirm your new password';
     } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = 'Passwords do not match';
     }
     
-    if (formData.currentPassword === formData.newPassword) {
-      newErrors.newPassword = 'New password must be different from current password';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      onSave({
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
-      });
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      setErrors({});
-      onClose();
+      onSave(formData);
     }
   };
-
-  const handleClose = () => {
-    setFormData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setErrors({});
-    setShowPasswords({
-      current: false,
-      new: false,
-      confirm: false
-    });
-    onClose();
-  };
-
+  
   if (!isOpen) return null;
-
+  
   return (
     <div className="modal-overlay">
-      <div className="modal-content password-modal">
+      <div className="modal-content">
         <div className="modal-header">
-          <h2 className="modal-title">Change password</h2>
-          <button className="close-btn" onClick={handleClose}>
-            ✕
-          </button>
+          <h2>Change Password</h2>
+          <button className="close-btn" onClick={onClose} disabled={loading}>×</button>
         </div>
         
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
-            <label className="form-label">Current password</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPasswords.current ? 'text' : 'password'}
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                placeholder="Enter current password"
-                className={`form-input ${errors.currentPassword ? 'error' : ''}`}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => togglePasswordVisibility('current')}
-              >
-                {showPasswords.current ? '👁️' : '👁️‍🗨️'}
-              </button>
-            </div>
-            {errors.currentPassword && <span className="error-message">{errors.currentPassword}</span>}
+            <label htmlFor="currentPassword">Current Password</label>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              value={formData.currentPassword}
+              onChange={handleInputChange}
+              className={formErrors.currentPassword ? 'error' : ''}
+              disabled={loading}
+            />
+            {formErrors.currentPassword && (
+              <div className="error-message">{formErrors.currentPassword}</div>
+            )}
           </div>
           
           <div className="form-group">
-            <label className="form-label">New password</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPasswords.new ? 'text' : 'password'}
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleInputChange}
-                placeholder="Enter new password"
-                className={`form-input ${errors.newPassword ? 'error' : ''}`}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => togglePasswordVisibility('new')}
-              >
-                {showPasswords.new ? '👁️' : '👁️‍🗨️'}
-              </button>
-            </div>
-            {errors.newPassword && <span className="error-message">{errors.newPassword}</span>}
+            <label htmlFor="newPassword">New Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={handleInputChange}
+              className={formErrors.newPassword ? 'error' : ''}
+              disabled={loading}
+            />
+            {formErrors.newPassword && (
+              <div className="error-message">{formErrors.newPassword}</div>
+            )}
           </div>
           
           <div className="form-group">
-            <label className="form-label">Confirm new password</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPasswords.confirm ? 'text' : 'password'}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Confirm new password"
-                className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => togglePasswordVisibility('confirm')}
-              >
-                {showPasswords.confirm ? '👁️' : '👁️‍🗨️'}
-              </button>
-            </div>
-            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+            <label htmlFor="confirmPassword">Confirm New Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className={formErrors.confirmPassword ? 'error' : ''}
+              disabled={loading}
+            />
+            {formErrors.confirmPassword && (
+              <div className="error-message">{formErrors.confirmPassword}</div>
+            )}
           </div>
           
-          <div className="password-requirements">
-            <p className="requirements-title">Password requirements:</p>
-            <ul className="requirements-list">
+          {/* <div className="password-requirements">
+            <h4>Password Requirements:</h4>
+            <ul>
               <li>At least 8 characters long</li>
-              <li>Different from your current password</li>
+              <li>Include uppercase and lowercase letters</li>
+              <li>Include at least one number</li>
+              <li>Include at least one special character</li>
             </ul>
-          </div>
+          </div> */}
           
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={handleClose}>
+          <div className="modal-footer">
+            <button 
+              type="button" 
+              className="cancel-btn" 
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </button>
-            <button type="submit" className="save-btn">
-              Change password
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={loading}
+            >
+              {loading ? 'Changing...' : 'Change Password'}
             </button>
           </div>
         </form>

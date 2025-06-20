@@ -50,14 +50,7 @@ const RecruiterHeader = ({ onNavigate, onCreateJob }) => {
         </div>
         
         <div className="header-right">
-          {/* ✅ Added Create Job button with direct navigation */}
-          <button 
-            className="create-job-btn"
-            onClick={handleCreateJob}
-            title="Create new job posting"
-          >
-            + Create Job
-          </button>
+          {/* ✅ Added Create Job button with direct navigation */}         
           <AccountDropdown />
         </div>
       </div>
