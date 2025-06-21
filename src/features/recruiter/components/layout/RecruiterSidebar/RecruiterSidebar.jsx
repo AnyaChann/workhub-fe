@@ -84,7 +84,7 @@ const RecruiterSidebar = ({ onTabChange, onCreateJob }) => {
         </nav>
       </div>
 
-      <div className="sidebar-section">
+      {/* <div className="sidebar-section">
         <div className="section-header">
           <span className="section-icon">👥</span>
           <span className="section-title">Talent</span>
@@ -100,9 +100,9 @@ const RecruiterSidebar = ({ onTabChange, onCreateJob }) => {
             <span className="nav-text">Candidates</span>
           </button>
         </nav>
-      </div>
+      </div> */}
 
-      <div className="sidebar-section">
+      {/* <div className="sidebar-section">
         <div className="section-header">
           <span className="section-icon">🏢</span>
           <span className="section-title">Account</span>
@@ -142,7 +142,7 @@ const RecruiterSidebar = ({ onTabChange, onCreateJob }) => {
             <span className="nav-text">Team</span>
           </button>
         </nav>
-      </div>
+      </div> */}
     </aside>
   );
 };
