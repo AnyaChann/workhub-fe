@@ -8,6 +8,12 @@ import { PageLoadingSpinner } from '../../shared/components/LoadingSpinner/Loadi
 const Home = React.lazy(() => import('../../features/marketing/pages/Home/Home'));
 const Pricing = React.lazy(() => import('../../features/marketing/pages/Pricing/Pricing'));
 
+// ✅ Sửa import path cho ApplicationsPage - đúng thư mục
+const ApplicationsPage = React.lazy(() => import('../../features/recruiter/pages/ApplicationPage/ApplicationsPage'));
+
+// ✅ Thêm import cho JobApplicationsPage
+const JobApplicationsPage = React.lazy(() => import('../../features/recruiter/pages/JobApplicationsPage/JobApplicationsPage'));
+
 // Auth pages
 const Login = React.lazy(() => import('../../features/auth/pages/Login/Login'));
 const Register = React.lazy(() => import('../../features/auth/pages/Register/Register'));

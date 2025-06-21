@@ -102,9 +102,9 @@ const CreateJobPage = ({
         
         setCategories(processedCategories.length > 0 ? processedCategories : [
           { id: 1, name: 'Công nghệ thông tin', description: 'Ngành liên quan đến lập trình...' },
-          { id: 2, name: 'Marketing', description: 'Ngành tiếp thị và quảng cáo...' },
-          { id: 3, name: 'Kinh doanh', description: 'Ngành kinh doanh và bán hàng...' },
-          { id: 4, name: 'Thiết kế', description: 'Ngành thiết kế đồ họa, UI/UX...' }
+          { id: 2, name: 'Marketing', description: 'Ngành tiếp thị và quảng cáo...' }
+          // { id: 3, name: 'Kinh doanh', description: 'Ngành kinh doanh và bán hàng...' }
+          // { id: 4, name: 'Thiết kế', description: 'Ngành thiết kế đồ họa, UI/UX...' }
         ]);
       } catch (error) {
         console.error('❌ Error loading categories:', error);

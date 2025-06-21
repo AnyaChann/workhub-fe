@@ -26,7 +26,11 @@ const ROUTES = {
     CREATE_JOB: '/recruiter/dashboard/jobs/create',
     EDIT_JOB: '/recruiter/dashboard/jobs/edit/:id',
     VIEW_JOB: '/recruiter/dashboard/jobs/view/:id',
-    APPLICATIONS: '/recruiter/dashboard/jobs/:id/applications',
+    
+    // ✅ Applications routes
+    APPLICATIONS: '/recruiter/dashboard/jobs/:id/applications', // Job-specific applications
+    ALL_APPLICATIONS: '/recruiter/dashboard/applications', // All applications
+    RESUME_REVIEWS: '/recruiter/dashboard/applications/reviews',
     
     // Candidates routes
     CANDIDATES: '/recruiter/dashboard/candidates',
@@ -46,20 +50,18 @@ const ROUTES = {
     }
   },
   
-  // Candidate routes (unchanged)
+  // Candidate routes
   CANDIDATE: {
     BASE: '/candidate',
     DASHBOARD_BASE: '/candidate/dashboard',
-    DASHBOARD: '/candidate/dashboard', // Default candidate dashboard
-    // ...rest of candidate routes
+    DASHBOARD: '/candidate/dashboard',
   },
   
-  // Admin routes (unchanged) 
+  // Admin routes
   ADMIN: {
     BASE: '/admin',
     DASHBOARD_BASE: '/admin/dashboard',
-    DASHBOARD: '/admin/dashboard', // Default admin dashboard
-    // ...rest of admin routes
+    DASHBOARD: '/admin/dashboard',
   },
   
   // Account status routes
@@ -106,6 +108,22 @@ export const getRoleBasePath = (role) => {
     default:
       return ROUTES.HOME;
   }
+};
+
+// ✅ Helper functions cho Applications routes
+export const getApplicationsRoutes = () => ({
+  ALL: ROUTES.RECRUITER.ALL_APPLICATIONS,
+  REVIEWS: ROUTES.RECRUITER.RESUME_REVIEWS,
+  JOB_SPECIFIC: (jobId) => ROUTES.RECRUITER.APPLICATIONS.replace(':id', jobId)
+});
+
+// ✅ Helper function để generate job applications URL
+export const getJobApplicationsUrl = (jobId, jobTitle) => {
+  const baseUrl = `/recruiter/dashboard/jobs/${jobId}/applications`;
+  if (jobTitle) {
+    return `${baseUrl}?jobTitle=${encodeURIComponent(jobTitle)}`;
+  }
+  return baseUrl;
 };
 
 export default ROUTES;

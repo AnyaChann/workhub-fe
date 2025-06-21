@@ -1,5 +1,5 @@
 // src/services/resumeService.js
-import api from './api';
+import api from '../helpers/api';
 
 export const resumeService = {
   // Get all resumes (employer view)

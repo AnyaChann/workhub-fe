@@ -1,11 +1,14 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../core/contexts/AuthContext';
 import { jobService } from '../../../services/jobService';
 import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import SearchSection from '../../../components/common/SearchSection/SearchSection';
 import JobsList from '../../../components/jobs/JobsList/JobsList';
 import EditJobModal from '../../../components/jobs/EditJobModal/EditJobModal';
+import ROUTES from '../../../../../core/routing/routeConstants';
 import './ActiveJobsPage.css';
+
 
 const ActiveJobsPage = ({ onCreateJob }) => {
   const [jobs, setJobs] = useState([]);
@@ -19,6 +22,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const { user, isRecruiter } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadJobs();
@@ -326,8 +330,10 @@ const ActiveJobsPage = ({ onCreateJob }) => {
   };
 
   const handleViewApplications = async (job) => {
-    console.log('👥 View applications for job:', job.id);
-    alert(`View applications for: ${job.title}\nFeature coming soon!`);
+    console.log('👁️ View applications for job:', job.id);
+
+    // ✅ Navigate to job-specific applications page
+    navigate(`/recruiter/dashboard/jobs/${job.id}/applications?jobTitle=${encodeURIComponent(job.title)}`);
   };
 
   const filterJob = (job, query) => {
