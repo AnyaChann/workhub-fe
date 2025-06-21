@@ -1,24 +1,24 @@
-.footer {
+.footers {
   background-color: #2c2c2c;
   color: #fff;
   padding: 3rem 0 1rem;
 }
 
-.footer-content {
+.footers .footer-content {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   margin-bottom: 2rem;
 }
 
-.footer-section h3 {
+.footers .footer-section h3 {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 1rem;
   color: #00d4aa;
 }
 
-.footer-section ul {
+.footers .footer-section ul {
   list-style: none;
   padding: 0;
 }

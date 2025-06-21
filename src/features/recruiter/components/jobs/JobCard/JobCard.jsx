@@ -344,7 +344,7 @@ const JobCard = ({
             <div className="stat-item">
               <span className="stat-label">Địa điểm</span>
               <span className="stat-value" title={displayLocation}>
-                {getTruncatedValue(displayLocation, 18)}
+                {getTruncatedValue(displayLocation, 55)}
               </span>
             </div>
             <div className="stat-item">
