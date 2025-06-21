@@ -42,9 +42,9 @@ export const useCategoriesAndPositions = () => {
       console.log('No category selected, showing all positions');
     } else {
       const filtered = positions.filter(position => {
-        // API trả về categoryId chứ không phải category_id
-        const positionCategoryId = position.categoryId || position.category_id;
-        return positionCategoryId === parseInt(categoryId);
+        // API trả về categoryId chứ không phải categoryId
+        const positioncategoryId = position.categoryId || position.categoryId;
+        return positioncategoryId === parseInt(categoryId);
       });
       setFilteredPositions(filtered);
       console.log(`Filtered positions for category ${categoryId}:`, filtered);

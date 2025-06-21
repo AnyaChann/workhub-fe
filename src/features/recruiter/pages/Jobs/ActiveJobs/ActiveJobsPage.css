@@ -1,149 +1,320 @@
-﻿.active-jobs-page {
-  padding: 1.5rem;
-  max-width: 1200px;
+﻿/* Modern Active Jobs Page */
+.active-jobs-page {
+  padding: 14px;
+  max-width: 1400px;
   margin: 0 auto;
+  background: #fafbfc;
+  min-height: 100vh;
 }
 
-.active-jobs-page .page-header {
-  margin-bottom: 1.5rem;
+/* View Controls */
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.active-jobs-page .search-section {
-  margin-bottom: 1.5rem;
+.view-mode-toggle {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 2px;
 }
 
-/* Custom delete confirmation styling */
-.delete-confirmation-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+.view-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-}
-
-.delete-confirmation-dialog {
-  background-color: white;
-  border-radius: 8px;
-  width: 400px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  padding: 0;
-  overflow: hidden;
-  animation: fadeInScale 0.2s ease-out;
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.delete-dialog-header {
-  background-color: #fee2e2;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.delete-dialog-header-icon {
-  font-size: 24px;
-  margin-right: 12px;
-  color: #b91c1c;
-}
-
-.delete-dialog-header-text {
-  color: #b91c1c;
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.delete-dialog-content {
-  padding: 20px;
-}
-
-.delete-dialog-content p {
-  margin: 0 0 16px 0;
-  color: #4b5563;
-  font-size: 15px;
-}
-
-.delete-dialog-footer {
-  padding: 16px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.delete-cancel-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  background-color: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
-  font-weight: 500;
+  width: 36px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #6b7280;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.delete-cancel-btn:hover {
-  background-color: #e5e7eb;
+.view-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
-.delete-confirm-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  background-color: #ef4444;
+.view-btn:hover {
+  color: #374151;
+}
+
+.view-btn.active {
+  background: white;
+  color: #3b82f6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Button Styles for PopUp actions */
+.btn-secondary {
+  padding: 10px 20px;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  padding: 10px 20px;
+  background: #dc2626;
   color: white;
   border: none;
-  font-weight: 500;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.delete-confirm-btn:hover {
-  background-color: #dc2626;
+.btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
-/* Thêm style cho toast notification */
+/* Page Layout */
+.active-jobs-page > * + * {
+  margin-top: 17px;
+}
 
-.success-toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #10B981;
-  color: white;
-  padding: 12px 16px;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  z-index: 1000;
-  transform: translateY(100px);
+/* Content Spacing */
+.active-jobs-page .page-header {
+  margin-bottom: 17px;
+}
+
+.active-jobs-page .error-banner {
+  margin-bottom: 24px;
+}
+
+.active-jobs-page .search-section {
+  margin-bottom: 20px;
+}
+
+.active-jobs-page .jobs-list-container {
+  margin-bottom: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .active-jobs-page {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .active-jobs-page {
+    padding: 16px;
+  }
+
+  .view-mode-toggle {
+    display: none;
+  }
+
+  .active-jobs-page > * + * {
+    margin-top: 20px;
+  }
+
+  .active-jobs-page .page-header {
+    margin-bottom: 24px;
+  }
+
+  .active-jobs-page .error-banner,
+  .active-jobs-page .search-section,
+  .active-jobs-page .jobs-list-container {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .active-jobs-page {
+    padding: 12px;
+  }
+
+  .active-jobs-page > * + * {
+    margin-top: 16px;
+  }
+
+  .active-jobs-page .page-header {
+    margin-bottom: 20px;
+  }
+
+  .active-jobs-page .error-banner,
+  .active-jobs-page .search-section,
+  .active-jobs-page .jobs-list-container {
+    margin-bottom: 16px;
+  }
+}
+
+/* Focus States for Accessibility */
+.view-btn:focus,
+.btn-secondary:focus,
+.btn-danger:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .view-mode-toggle,
+  .btn-secondary,
+  .btn-danger {
+    border: 2px solid;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .view-btn,
+  .btn-secondary,
+  .btn-danger {
+    transition: none;
+  }
+
+  .btn-secondary:hover,
+  .btn-danger:hover {
+    transform: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .active-jobs-page {
+    background: white;
+    padding: 0;
+  }
+
+  .view-controls,
+  .error-banner {
+    display: none;
+  }
+}
+
+/* Dark Mode Support */
+/* @media (prefers-color-scheme: dark) {
+  .active-jobs-page {
+    background: #111827;
+  }
+
+  .view-mode-toggle {
+    background: #1f2937;
+  }
+
+  .view-btn.active {
+    background: #374151;
+  }
+
+  .btn-secondary {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+
+  .btn-secondary:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+} */
+
+/* Loading State Overlay */
+.active-jobs-page.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Success State */
+.active-jobs-page.success .page-header {
+  border-left: 4px solid #10b981;
+}
+
+/* Animation States */
+.active-jobs-page-enter {
   opacity: 0;
-  transition: all 0.3s ease;
+  transform: translateY(20px);
 }
 
-.success-toast.show {
-  transform: translateY(0);
+.active-jobs-page-enter-active {
   opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
 }
 
-.toast-icon {
-  margin-right: 8px;
-  font-size: 18px;
+.active-jobs-page-exit {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.toast-message {
-  font-weight: 500;
+.active-jobs-page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+}
+
+/* Custom Scrollbar */
+.active-jobs-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.active-jobs-page::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.active-jobs-page::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.active-jobs-page::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Performance Optimizations */
+.active-jobs-page {
+  contain: layout;
+  will-change: transform;
+}
+
+.active-jobs-page .jobs-list-container {
+  contain: layout style;
+}
+
+/* Error Recovery */
+.active-jobs-page.error-state {
+  background: #fef2f2;
+}
+
+.active-jobs-page.error-state .page-header {
+  border-left: 4px solid #ef4444;
+}
+
+/* Success Recovery */
+.active-jobs-page.recovered {
+  animation: recoveredPulse 0.5s ease-out;
+}
+
+@keyframes recoveredPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
 }

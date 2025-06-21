@@ -1,7 +1,7 @@
 import api from '../../../shared/utils/helpers/api';
 
 export const jobService = {
-  // ✅ Updated to handle actual API response structure
+  // ✅ Updated getRecruiterJobs to handle correct API structure
   getRecruiterJobs: async () => {
     try {
       console.log('📋 Fetching recruiter jobs...');
@@ -33,50 +33,85 @@ export const jobService = {
 
       console.log('📋 Jobs array from API:', jobs);
 
-      // ✅ Map API response to frontend format based on actual API structure
-      const mappedJobs = jobs.map(job => ({
-        // ✅ Direct mapping from API response
-        id: job.id,
-        title: job.title || 'Untitled Job',
-        description: job.description || 'No description available',
-        location: job.location || 'Not specified',
-        salaryRange: job.salaryRange || 'Competitive',
-        experience: job.experience || 'Not specified',
-        deadline: job.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      // ✅ Enhanced mapping for correct API structure
+      const mappedJobs = jobs.map((job, index) => {
+        console.log(`📋 Processing job ${index}:`, job);
+        
+        // ✅ According to API schema - category, type, position, skills are strings/arrays
+        const categoryString = job.category || '';
+        const typeString = job.type || '';
+        const positionString = job.position || '';
+        const skillsArray = Array.isArray(job.skills) ? job.skills : [];
 
-        // ✅ Additional fields from API
-        companyName: job.companyName || 'Company Name',
-        companyLogo: job.companyLogo || null,
-        category: job.category || 'General',
-        type: job.type || 'Full-time',
-        position: job.position || 'Position',
-        skills: job.skills || [],
+        console.log(`📋 Job ${index} string data:`, {
+          category: categoryString,
+          type: typeString,
+          position: positionString,
+          skills: skillsArray
+        });
 
-        // ✅ Computed fields for frontend
-        createdAt: job.createdAt || new Date().toISOString(), // API might not return this
-        postAt: job.postAt || 'STANDARD', // Default post type
+        const mappedJob = {
+          // ✅ Direct mapping from API response
+          id: job.id,
+          title: job.title || 'Untitled Job',
+          description: job.description || 'No description available',
+          location: job.location || 'Not specified',
+          salaryRange: job.salaryRange || 'Competitive',
+          experience: job.experience || 'Not specified',
+          deadline: job.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
 
-        // ✅ Status derivation based on deadline
-        status: deriveJobStatusFromAPI(job),
-        isExpired: job.deadline ? new Date(job.deadline) < new Date() : false,
-        daysUntilDeadline: job.deadline ? calculateDaysUntilDeadline(job.deadline) : null,
-        isRecent: job.createdAt ? isRecentJob(job.createdAt) : true,
+          // ✅ Store string values as-is from API
+          category: categoryString,
+          categoryId: null, // No ID in this API structure
+          categoryName: categoryString,
 
-        // ✅ Display formatting
-        displaySalary: formatSalaryRange(job.salaryRange),
-        displayLocation: job.location || 'Remote',
-        displayExperience: formatExperience(job.experience),
-        displayCompany: job.companyName || 'Your Company',
-        displayCategory: job.category || 'General',
-        displayType: job.type || 'Full-time',
-        displayPosition: job.position || 'Position',
+          type: typeString,
+          typeId: null, // No ID in this API structure
+          typeName: typeString,
 
-        // ✅ Skills formatting
-        skillsList: Array.isArray(job.skills) ? job.skills : [],
-        skillsDisplay: Array.isArray(job.skills) ? job.skills.join(', ') : 'No skills specified'
-      }));
+          position: positionString,
+          positionId: null, // No ID in this API structure
+          positionName: positionString,
 
-      console.log('✅ Mapped jobs:', mappedJobs);
+          skills: skillsArray,
+          skillIds: [], // No IDs in this API structure
+          skillNames: skillsArray,
+
+          // ✅ Company info
+          companyName: job.companyName || 'Company Name',
+          companyLogo: job.companyLogo || null,
+
+          // ✅ Computed fields for frontend
+          createdAt: job.createdAt || new Date().toISOString(),
+          postAt: job.postAt || 'STANDARD',
+
+          // ✅ Status derivation based on deadline
+          status: deriveJobStatusFromAPI(job),
+          isExpired: job.deadline ? new Date(job.deadline) < new Date() : false,
+          daysUntilDeadline: job.deadline ? calculateDaysUntilDeadline(job.deadline) : null,
+          isRecent: job.createdAt ? isRecentJob(job.createdAt) : true,
+
+          // ✅ Display formatting
+          displaySalary: formatSalaryRange(job.salaryRange),
+          displayLocation: job.location || 'Remote',
+          displayExperience: formatExperience(job.experience),
+          displayCompany: job.companyName || 'Your Company',
+          displayCategory: categoryString || 'General',
+          displayType: typeString || 'Full-time',
+          displayPosition: positionString || 'Position',
+
+          // ✅ Skills formatting
+          skillsList: skillsArray,
+          skillsDisplay: skillsArray.length > 0 
+            ? skillsArray.join(', ') 
+            : 'No skills specified'
+        };
+
+        console.log(`📋 Mapped job ${index}:`, mappedJob);
+        return mappedJob;
+      });
+
+      console.log('✅ All mapped jobs:', mappedJobs);
       return mappedJobs;
 
     } catch (error) {
@@ -99,7 +134,7 @@ export const jobService = {
             console.error('🚫 Forbidden - User might not be a recruiter or lack permissions');
             break;
           case 404:
-            console.error('� Endpoint not found - Check API URL: /jobs/recruiter');
+            console.error('🔍 Endpoint not found - Check API URL: /jobs/recruiter');
             break;
           case 500:
             console.error('💥 Server error - Backend issue');
@@ -135,71 +170,12 @@ export const jobService = {
     }
   },
 
-  // ✅ Test connection with actual jobs endpoint
-  testConnection: async () => {
-    try {
-      console.log('🔌 Testing API connection...');
-
-      // Test the general jobs endpoint first
-      const response = await api.get('/jobs');
-      console.log('✅ General jobs API connection successful:', response);
-      return true;
-    } catch (error) {
-      console.error('❌ API connection failed:', error);
-      return false;
-    }
-  },
-
-  // ✅ Test recruiter endpoint specifically
-  testRecruiterEndpoint: async () => {
-    try {
-      console.log('🔌 Testing recruiter jobs endpoint...');
-
-      const response = await api.get('/jobs/recruiter');
-      console.log('✅ Recruiter jobs endpoint successful:', response);
-      return { success: true, data: response };
-    } catch (error) {
-      console.error('❌ Recruiter endpoint failed:', error);
-      return {
-        success: false,
-        error: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      };
-    }
-  },
-
-  // ✅ Get current user info
-  getCurrentUser: async () => {
-    try {
-      // Try different possible user endpoints
-      let response;
-      try {
-        response = await api.get('/auth/me');
-      } catch (e) {
-        try {
-          response = await api.get('/users/me');
-        } catch (e2) {
-          response = await api.get('/user/profile');
-        }
-      }
-
-      console.log('👤 Current user:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Failed to get current user:', error);
-      throw error;
-    }
-  },
-
-  // ...existing code...
-
-  // ✅ Update createJob method to match API structure
+  // ✅ Update createJob method to match new API structure
   createJob: async (jobData) => {
     try {
       console.log('📝 Creating job with data:', jobData);
 
-      // ✅ Map to exact API expected format
+      // ✅ Map form data to API expected format (strings not objects)
       const apiPayload = {
         title: jobData.title,
         description: jobData.description,
@@ -207,21 +183,18 @@ export const jobService = {
         experience: jobData.experience || 'Not specified',
         location: jobData.location,
         deadline: jobData.deadline,
-        postAt: jobData.postAt || 'standard',
 
-        // ✅ Send nested objects as expected by API
-        category: {
-          id: jobData.category?.id || jobData.categoryId
-        },
-        type: {
-          id: jobData.type?.id || jobData.typeId
-        },
-        position: {
-          id: jobData.position?.id || jobData.positionId
-        },
+        // ✅ Send strings for category, type, position - not objects with IDs
+        category: jobData.categoryName || jobData.category || '',
+        type: jobData.typeName || jobData.type || '',
+        position: jobData.positionName || jobData.position || '',
 
-        // ✅ Skills array
-        skills: jobData.skills || []
+        // ✅ Skills as array of strings
+        skills: Array.isArray(jobData.skillNames) 
+          ? jobData.skillNames 
+          : Array.isArray(jobData.skills) 
+            ? jobData.skills.map(skill => typeof skill === 'string' ? skill : skill.name || skill)
+            : []
       };
 
       console.log('📤 API payload:', apiPayload);
@@ -270,7 +243,7 @@ export const jobService = {
         throw new Error('Invalid job ID provided');
       }
 
-      // Cấu trúc payload theo đúng định dạng API yêu cầu
+      // ✅ Map form data to API expected format (strings not objects)
       const apiPayload = {
         title: jobData.title,
         description: jobData.description,
@@ -278,35 +251,18 @@ export const jobService = {
         salaryRange: jobData.salaryRange,
         experience: jobData.experience,
         deadline: jobData.deadline,
-        postAt: jobData.postAt || 'standard',
 
-        // Định dạng các đối tượng lồng nhau đúng cấu trúc
-        category: {
-          id: typeof jobData.category === 'object' ? jobData.category.id : jobData.categoryId || jobData.category
-        },
+        // ✅ Send strings for category, type, position - not objects with IDs
+        category: jobData.categoryName || jobData.category || '',
+        type: jobData.typeName || jobData.type || '',
+        position: jobData.positionName || jobData.position || '',
 
-        type: {
-          id: typeof jobData.type === 'object' ? jobData.type.id : jobData.typeId || jobData.type
-        },
-
-        position: {
-          id: typeof jobData.position === 'object' ? jobData.position.id : jobData.positionId || jobData.position
-        },
-
-        // Xử lý skills có thể là mảng đối tượng hoặc mảng ID
-        skills: Array.isArray(jobData.skills)
-          ? jobData.skills.map(skill => {
-            // Nếu skill đã là object có id
-            if (typeof skill === 'object' && skill.id) {
-              return skill;
-            }
-            // Nếu skill là ID số hoặc string
-            else if (typeof skill === 'number' || typeof skill === 'string') {
-              return { id: skill };
-            }
-            return skill;
-          })
-          : []
+        // ✅ Skills as array of strings
+        skills: Array.isArray(jobData.skillNames) 
+          ? jobData.skillNames 
+          : Array.isArray(jobData.skills) 
+            ? jobData.skills.map(skill => typeof skill === 'string' ? skill : skill.name || skill)
+            : []
       };
 
       console.log('📤 API payload for update:', apiPayload);
@@ -362,12 +318,61 @@ export const jobService = {
     return jobService.updateJob(jobId, jobData);
   },
 
-  // ✅ Add method to get form options
+  // Rest of existing methods...
+  testConnection: async () => {
+    try {
+      console.log('🔌 Testing API connection...');
+      const response = await api.get('/jobs');
+      console.log('✅ General jobs API connection successful:', response);
+      return true;
+    } catch (error) {
+      console.error('❌ API connection failed:', error);
+      return false;
+    }
+  },
+
+  testRecruiterEndpoint: async () => {
+    try {
+      console.log('� Testing recruiter jobs endpoint...');
+      const response = await api.get('/jobs/recruiter');
+      console.log('✅ Recruiter jobs endpoint successful:', response);
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('❌ Recruiter endpoint failed:', error);
+      return {
+        success: false,
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      };
+    }
+  },
+
+  getCurrentUser: async () => {
+    try {
+      let response;
+      try {
+        response = await api.get('/auth/me');
+      } catch (e) {
+        try {
+          response = await api.get('/users/me');
+        } catch (e2) {
+          response = await api.get('/user/profile');
+        }
+      }
+
+      console.log('👤 Current user:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to get current user:', error);
+      throw error;
+    }
+  },
+
   getJobFormOptions: async () => {
     try {
       console.log('📋 Fetching job form options...');
 
-      // These could be separate API calls in real app
       const [categoriesRes, typesRes, positionsRes, skillsRes] = await Promise.allSettled([
         api.get('/categories'),
         api.get('/job-types'),
@@ -383,7 +388,6 @@ export const jobService = {
       };
     } catch (error) {
       console.error('❌ Error fetching form options:', error);
-      // Return default options if API fails
       return {
         categories: [],
         types: [],
@@ -393,62 +397,25 @@ export const jobService = {
     }
   },
 
-
-  // ✅ Update job
-  updateJob: async (jobId, jobData) => {
-    try {
-      console.log('✏️ Updating job:', jobId, jobData);
-
-      const apiPayload = {
-        title: jobData.title,
-        description: jobData.description,
-        location: jobData.location,
-        salaryRange: jobData.salaryRange,
-        experience: jobData.experience,
-        deadline: jobData.deadline,
-        category: jobData.category,
-        type: jobData.type,
-        position: jobData.position,
-        skills: jobData.skills || []
-      };
-
-      const response = await api.put(`/jobs/${jobId}`, apiPayload);
-      console.log('✅ Job updated successfully:', response);
-
-      return response;
-    } catch (error) {
-      console.error('❌ Error updating job:', error);
-      throw error;
-    }
-  },
-
-  // ✅ Delete job
-  // Cập nhật phương thức deleteJob với endpoint chuẩn và xử lý lỗi chi tiết
-
-  // ✅ Xóa job - cập nhật endpoint và xử lý lỗi chi tiết
   deleteJob: async (jobId) => {
     try {
       console.log('🗑️ Deleting job:', jobId);
 
-      // Kiểm tra ID hợp lệ
       if (!jobId || isNaN(parseInt(jobId))) {
         throw new Error('Invalid job ID provided');
       }
 
-      // Sử dụng endpoint chuẩn DELETE /jobs/{id}
       const response = await api.delete(`/jobs/${jobId}`);
       console.log('✅ Job deleted successfully:', response);
       return response;
     } catch (error) {
       console.error('❌ Error deleting job:', error);
 
-      // Enhanced error handling for delete job
       if (error.response) {
         console.error('📥 Delete job error response:', error.response.data);
 
         let errorMessage = 'Failed to delete job';
 
-        // Xử lý các loại lỗi từ API trả về
         if (error.response.status === 400) {
           errorMessage = error.response.data?.message || 'Invalid job ID provided';
         } else if (error.response.status === 401) {
@@ -461,7 +428,6 @@ export const jobService = {
           errorMessage = 'Server error. Please try again later.';
         }
 
-        // Tạo error object có thêm thông tin
         const enhancedError = new Error(errorMessage);
         enhancedError.status = error.response.status;
         enhancedError.originalError = error;
@@ -469,29 +435,25 @@ export const jobService = {
         throw enhancedError;
       }
 
-      // Nếu không phải lỗi response (như network error)
       throw error;
     }
   }
 };
 
-// ✅ Helper functions updated for API response
+// Helper functions remain the same
 function deriveJobStatusFromAPI(job) {
   try {
     const now = new Date();
     const deadline = job.deadline ? new Date(job.deadline) : null;
 
-    // If no deadline, consider it active
     if (!deadline) {
       return 'active';
     }
 
-    // If deadline has passed, it's expired
     if (deadline < now) {
       return 'expired';
     }
 
-    // Default to active
     return 'active';
   } catch (error) {
     console.warn('⚠️ Error deriving job status:', error);

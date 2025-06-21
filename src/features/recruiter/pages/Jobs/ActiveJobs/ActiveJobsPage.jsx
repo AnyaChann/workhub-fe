@@ -2,25 +2,58 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../core/contexts/AuthContext';
 import { jobService } from '../../../services/jobService';
+import { mockDataService } from '../../../services/mockDataService';
 import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import SearchSection from '../../../components/common/SearchSection/SearchSection';
 import JobsList from '../../../components/jobs/JobsList/JobsList';
-import EditJobModal from '../../../components/jobs/EditJobModal/EditJobModal';
-import ROUTES from '../../../../../core/routing/routeConstants';
+import PopUp from '../../../components/common/PopUp/PopUp';
+import ErrorBanner from '../../../components/common/ErrorBanner/ErrorBanner';
+import NotificationToast from '../../../components/common/NotificationToast/NotificationToast';
+import Pagination from '../../../components/common/Pagination/Pagination';
+import EditJobModal from '../../../components/Modal/EditJobModal/EditJobModal';
 import './ActiveJobsPage.css';
 
-
 const ActiveJobsPage = ({ onCreateJob }) => {
+  // State management
   const [jobs, setJobs] = useState([]);
   const [allJobs, setAllJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('created_at');
-  const [debugInfo, setDebugInfo] = useState({});
+  
+  // Load initial preferences from localStorage
+  const getInitialPreferences = () => {
+    try {
+      const savedPreferences = localStorage.getItem('activeJobs_preferences');
+      if (savedPreferences) {
+        const { sortBy, viewMode } = JSON.parse(savedPreferences);
+        return {
+          sortBy: sortBy || 'newest',
+          viewMode: viewMode || 'grid'
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+    }
+    return { sortBy: 'newest', viewMode: 'grid' };
+  };
 
+  const initialPreferences = getInitialPreferences();
+  const [sortBy, setSortBy] = useState(initialPreferences.sortBy);
+  const [viewMode, setViewMode] = useState(initialPreferences.viewMode);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [usingMockData, setUsingMockData] = useState(false);
+  const showViewToggle = true; // Define the variable
+
+  // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
+  const [notification, setNotification] = useState(null);
+
   const { user, isRecruiter } = useAuth();
   const navigate = useNavigate();
 
@@ -28,66 +61,66 @@ const ActiveJobsPage = ({ onCreateJob }) => {
     loadJobs();
   }, []);
 
+  // Apply sorting whenever sortBy changes
+  useEffect(() => {
+    if (jobs.length > 0) {
+      applySorting(sortBy);
+    }
+  }, [sortBy]);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+  };
+
+  const applySorting = (sortOption) => {
+    const sorted = [...jobs].sort((a, b) => {
+      switch (sortOption) {
+        case 'newest':
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        case 'oldest':
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        case 'deadline':
+          return new Date(a.deadline) - new Date(b.deadline);
+        case 'applications':
+          return (b.applicationsCount || 0) - (a.applicationsCount || 0);
+        case 'title':
+          return a.title.localeCompare(b.title);
+        default:
+          return 0;
+      }
+    });
+    setJobs(sorted);
+  };
+
   const loadJobs = async () => {
     try {
       setLoading(true);
       setError(null);
+      setUsingMockData(false);
 
-      // ✅ Enhanced debugging info
-      const debug = {
-        timestamp: new Date().toISOString(),
-        user: user ? { id: user.id, email: user.email, role: user.role } : null,
-        isRecruiter: isRecruiter(),
-        token: localStorage.getItem('accessToken') ? 'Present' : 'Missing',
-        apiBaseUrl: process.env.REACT_APP_API_URL || 'Not set'
-      };
-
-      console.log('� Debug info before API call:', debug);
-      setDebugInfo(debug);
-
-      // ✅ Check if user is recruiter
       if (!isRecruiter()) {
         throw new Error('User is not authorized as recruiter');
       }
 
-      // ✅ Test connection first (optional)
-      console.log('🔌 Testing API connection...');
-      const connectionTest = await jobService.testConnection();
-      console.log('🔌 Connection test result:', connectionTest);
-
-      // ✅ Attempt to get recruiter jobs
-      console.log('�📋 Loading recruiter jobs from API...');
+      console.log('📋 Loading recruiter jobs from API...');
       const response = await jobService.getRecruiterJobs();
 
-      console.log('📥 API Response:', response);
-
-      // Filter active jobs
       const activeJobs = Array.isArray(response)
         ? response.filter(job => {
           const isActive = job.status === 'active' ||
             (!job.status && !job.isExpired);
-          console.log(`Job ${job.id}: status=${job.status}, isActive=${isActive}`);
           return isActive;
         })
         : [];
 
-      console.log('✅ Active jobs loaded:', activeJobs.length, activeJobs);
+      console.log('✅ Active jobs loaded:', activeJobs.length);
 
       setAllJobs(activeJobs);
       setJobs(activeJobs);
 
-      // Update debug info with success
-      setDebugInfo(prev => ({
-        ...prev,
-        success: true,
-        jobCount: activeJobs.length,
-        lastLoaded: new Date().toISOString()
-      }));
-
     } catch (err) {
       console.error('❌ Error loading jobs:', err);
 
-      // ✅ Enhanced error handling with specific messages
       let errorMessage = 'Failed to load jobs';
       let shouldShowMockData = false;
 
@@ -99,7 +132,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         errorMessage = 'Jobs endpoint not found. Please check API configuration.';
       } else if (err.status === 500) {
         errorMessage = 'Server error. The backend service is experiencing issues.';
-        shouldShowMockData = true; // Show mock data for 500 errors
+        shouldShowMockData = true;
       } else if (err.message.includes('Network Error')) {
         errorMessage = 'Network error. Please check your internet connection.';
         shouldShowMockData = true;
@@ -110,98 +143,19 @@ const ActiveJobsPage = ({ onCreateJob }) => {
 
       setError(errorMessage);
 
-      // Update debug info with error details
-      setDebugInfo(prev => ({
-        ...prev,
-        error: {
-          message: errorMessage,
-          status: err.status,
-          timestamp: new Date().toISOString(),
-          originalError: err.originalError?.message
-        }
-      }));
-
-      // ✅ Show mock data for development/demo purposes
       if (shouldShowMockData && process.env.NODE_ENV === 'development') {
         console.log('🔄 Using mock data for development...');
-
-        const mockJobs = [
-          {
-            id: 'mock-1',
-            title: 'Senior React Developer',
-            description: 'We are looking for an experienced React developer to join our team. You will work on cutting-edge projects and collaborate with a talented team of developers.',
-            location: 'Ho Chi Minh City',
-            salaryRange: '1500 - 3000 USD',
-            experience: '3+ years',
-            deadline: '2024-07-31',
-            postAt: 'PREMIUM',
-            createdAt: '2024-06-20T10:00:00Z',
-            categoryId: 1,
-            positionId: 2,
-            recruiterId: user?.id,
-            typeId: 1,
-            status: 'active',
-            isExpired: false,
-            daysUntilDeadline: 41,
-            isRecent: true,
-            displaySalary: '$1,500 - $3,000',
-            displayLocation: 'Ho Chi Minh City',
-            displayExperience: '3+ years'
-          },
-          {
-            id: 'mock-2',
-            title: 'UI/UX Designer',
-            description: 'Creative designer needed for web and mobile applications. Join our design team and help create amazing user experiences.',
-            location: 'Remote',
-            salaryRange: '1000 - 2000 USD',
-            experience: '2+ years',
-            deadline: '2024-07-25',
-            postAt: 'STANDARD',
-            createdAt: '2024-06-18T14:30:00Z',
-            categoryId: 2,
-            positionId: 3,
-            recruiterId: user?.id,
-            typeId: 2,
-            status: 'active',
-            isExpired: false,
-            daysUntilDeadline: 35,
-            isRecent: true,
-            displaySalary: '$1,000 - $2,000',
-            displayLocation: 'Remote',
-            displayExperience: '2+ years'
-          },
-          {
-            id: 'mock-3',
-            title: 'Backend Developer (Node.js)',
-            description: 'Join our backend team to build scalable APIs and microservices. Experience with Node.js and databases required.',
-            location: 'Da Nang',
-            salaryRange: '1200 - 2500 USD',
-            experience: '2-5 years',
-            deadline: '2024-08-15',
-            postAt: 'STANDARD',
-            createdAt: '2024-06-15T09:00:00Z',
-            categoryId: 1,
-            positionId: 1,
-            recruiterId: user?.id,
-            typeId: 1,
-            status: 'active',
-            isExpired: false,
-            daysUntilDeadline: 56,
-            isRecent: false,
-            displaySalary: '$1,200 - $2,500',
-            displayLocation: 'Da Nang',
-            displayExperience: '2-5 years'
-          }
-        ];
-
-        setAllJobs(mockJobs);
-        setJobs(mockJobs);
-
-        setDebugInfo(prev => ({
-          ...prev,
-          usingMockData: true,
-          mockJobCount: mockJobs.length
+        const mockJobs = mockDataService.getActiveJobs();
+        
+        // Add applications count to mock jobs
+        const jobsWithApplications = mockJobs.map(job => ({
+          ...job,
+          applicationsCount: mockDataService.getApplicationsCount(job.id)
         }));
+
+        setAllJobs(jobsWithApplications);
+        setJobs(jobsWithApplications);
+        setUsingMockData(true);
       }
 
     } finally {
@@ -209,34 +163,9 @@ const ActiveJobsPage = ({ onCreateJob }) => {
     }
   };
 
-  // ✅ Enhanced retry function
   const handleRetry = async () => {
     console.log('🔄 Retrying to load jobs...');
     await loadJobs();
-  };
-
-  // ✅ Manual API test function
-  const handleTestAPI = async () => {
-    try {
-      console.log('🧪 Testing API endpoints...');
-
-      // Test basic connection
-      const connectionTest = await jobService.testConnection();
-      console.log('Connection test:', connectionTest);
-
-      // Test auth
-      try {
-        const userInfo = await jobService.getCurrentUser();
-        console.log('User info:', userInfo);
-      } catch (authError) {
-        console.log('Auth test failed:', authError.message);
-      }
-
-      alert('Check console for API test results');
-    } catch (error) {
-      console.error('API test failed:', error);
-      alert('API test failed - check console for details');
-    }
   };
 
   const handleEditJob = (job) => {
@@ -245,94 +174,71 @@ const ActiveJobsPage = ({ onCreateJob }) => {
     setIsEditModalOpen(true);
   };
 
-  // Thêm hàm xử lý khi chỉnh sửa thành công
   const handleEditSuccess = (jobId) => {
     console.log('✅ Edit success for job ID:', jobId);
     setIsEditModalOpen(false);
     setSelectedJob(null);
-
-    // Reload jobs after successful edit
+    showNotification('Job updated successfully!');
     loadJobs();
   };
 
-  // Cập nhật hàm handleDeleteJob để xử lý lỗi tốt hơn và hiển thị thông báo phù hợp
+  const handleDeleteJob = (job) => {
+    setJobToDelete(job);
+    setShowDeleteConfirm(true);
+  };
 
-  const handleDeleteJob = async (job) => {
-    if (!window.confirm(`Are you sure you want to delete "${job.title}"?`)) {
-      return;
-    }
+  const confirmDeleteJob = async () => {
+    if (!jobToDelete) return;
 
     try {
-      console.log('🗑️ Deleting job:', job.id);
+      console.log('🗑️ Deleting job:', jobToDelete.id);
 
-      if (job.id.toString().startsWith('mock-')) {
+      if (jobToDelete.id.toString().startsWith('mock-')) {
         console.log('🔄 Deleting mock job (local only)');
-        const updatedJobs = allJobs.filter(j => j.id !== job.id);
+        const updatedJobs = allJobs.filter(j => j.id !== jobToDelete.id);
         setAllJobs(updatedJobs);
         setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
-        return;
+        showNotification(`Job "${jobToDelete.title}" deleted successfully!`);
+      } else {
+        await jobService.deleteJob(jobToDelete.id);
+        const updatedJobs = allJobs.filter(j => j.id !== jobToDelete.id);
+        setAllJobs(updatedJobs);
+        setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
+        showNotification(`Job "${jobToDelete.title}" deleted successfully!`);
       }
-
-      // Call deleteJob service with job ID
-      await jobService.deleteJob(job.id);
-
-      // Update UI after successful deletion
-      const updatedJobs = allJobs.filter(j => j.id !== job.id);
-      setAllJobs(updatedJobs);
-      setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
-
-      // Show success notification
-      const jobDeletedNotification = document.createElement('div');
-      jobDeletedNotification.className = 'success-toast';
-      jobDeletedNotification.innerHTML = `
-          <span class="toast-icon">✅</span>
-          <span class="toast-message">Job "${job.title}" deleted successfully</span>
-        `;
-      document.body.appendChild(jobDeletedNotification);
-
-      setTimeout(() => {
-        jobDeletedNotification.classList.add('show');
-        setTimeout(() => {
-          jobDeletedNotification.classList.remove('show');
-          setTimeout(() => {
-            jobDeletedNotification.remove();
-          }, 300);
-        }, 3000);
-      }, 100);
 
       console.log('✅ Job deleted successfully');
 
     } catch (err) {
       console.error('❌ Error deleting job:', err);
 
-      // Show appropriate error message based on error status
       let errorMessage = 'Failed to delete job. Please try again.';
 
       if (err.status === 403) {
         errorMessage = 'You do not have permission to delete this job.';
       } else if (err.status === 404) {
         errorMessage = 'This job could not be found. It may have been deleted already.';
-        // If job not found, remove it from local state
-        const updatedJobs = allJobs.filter(j => j.id !== job.id);
+        const updatedJobs = allJobs.filter(j => j.id !== jobToDelete.id);
         setAllJobs(updatedJobs);
         setJobs(updatedJobs.filter(j => filterJob(j, searchQuery)));
       } else if (err.status === 401) {
         errorMessage = 'Your session has expired. Please log in again.';
       }
 
-      alert(errorMessage);
+      showNotification(errorMessage, 'error');
+    } finally {
+      setShowDeleteConfirm(false);
+      setJobToDelete(null);
     }
   };
 
   const handleDuplicateJob = async (job) => {
-    console.log('� Duplicate job:', job);
-    alert('Duplicate job feature coming soon!');
+    console.log('📄 Duplicate job:', job);
+    showNotification('Duplicate job feature coming soon!', 'info');
   };
 
   const handleViewApplications = async (job) => {
     console.log('👁️ View applications for job:', job.id);
-
-    // ✅ Navigate to job-specific applications page
     navigate(`/recruiter/dashboard/jobs/${job.id}/applications?jobTitle=${encodeURIComponent(job.title)}`);
   };
 
@@ -343,96 +249,136 @@ const ActiveJobsPage = ({ onCreateJob }) => {
       job.title.toLowerCase().includes(searchTerms) ||
       job.location?.toLowerCase().includes(searchTerms) ||
       job.description?.toLowerCase().includes(searchTerms) ||
-      job.displaySalary?.toLowerCase().includes(searchTerms)
+      job.displaySalary?.toLowerCase().includes(searchTerms) ||
+      job.category?.toLowerCase().includes(searchTerms) ||
+      job.type?.toLowerCase().includes(searchTerms) ||
+      job.position?.toLowerCase().includes(searchTerms)
     );
   };
 
   const handleSearchChange = (query) => {
     setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page when searching
     const filtered = allJobs.filter(job => filterJob(job, query));
     setJobs(filtered);
   };
 
   const handleSortChange = (sortOption) => {
+    console.log('🔄 Sort changed to:', sortOption);
     setSortBy(sortOption);
-
-    const sorted = [...jobs].sort((a, b) => {
-      switch (sortOption) {
-        case 'created_at':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'deadline':
-          return new Date(a.deadline) - new Date(b.deadline);
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'salary':
-          return (b.salaryRange || '').localeCompare(a.salaryRange || '');
-        default:
-          return 0;
-      }
-    });
-
-    setJobs(sorted);
+    applySorting(sortOption);
   };
+
+  const handleViewModeChange = (mode) => {
+    console.log('🔄 View mode changed to:', mode);
+    setViewMode(mode);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(jobs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentJobs = jobs.slice(startIndex, endIndex);
+
+  // Delete confirmation icon and actions
+  const deleteIcon = (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2"/>
+      <line x1="15" y1="9" x2="9" y2="15" stroke="#ef4444" strokeWidth="2"/>
+      <line x1="9" y1="9" x2="15" y2="15" stroke="#ef4444" strokeWidth="2"/>
+    </svg>
+  );
+
+  const deleteActions = (
+    <>
+      <button 
+        className="btn-secondary"
+        onClick={() => setShowDeleteConfirm(false)}
+      >
+        Hủy bỏ
+      </button>
+      <button 
+        className="btn-danger"
+        onClick={confirmDeleteJob}
+      >
+        Xóa công việc
+      </button>
+    </>
+  );
 
   return (
     <div className="active-jobs-page">
       <PageHeader
-        title="Active Jobs"
-        subtitle={`${jobs.length} active job${jobs.length !== 1 ? 's' : ''} ${allJobs.length !== jobs.length ? `(filtered from ${allJobs.length})` : ''}`}
-        showCreateButton={true}
+        title="Công việc đang tuyển"
+        subtitle={jobs.length > 0 ? `${jobs.length.toLocaleString()} công việc` : 'Chưa có công việc nào'}
         onCreateJob={onCreateJob}
-        createButtonText="➕ Create New Job"
+        showStats={true}
+        stats={[
+          { label: 'Tổng cộng', value: allJobs.length, color: '#3b82f6' },
+          { label: 'Đang hiển thị', value: jobs.length, color: '#10b981' },
+          { label: 'Trang hiện tại', value: `${currentPage}/${totalPages}`, color: '#f59e0b' }
+        ]}
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/recruiter/dashboard' },
+          { label: 'Công việc', href: '/recruiter/dashboard/jobs' },
+          { label: 'Đang tuyển' }
+        ]}
       />
 
-      {/* ✅ Enhanced error banner */}
+      {/* Error Banner */}
       {error && (
-        <div className="error-banner">
-          <div className="error-content">
-            <span className="error-icon">⚠️</span>
-            <div className="error-message">
-              <strong>Error:</strong> {error}
-            </div>
-            <div className="error-actions">
-              <button onClick={handleRetry} className="retry-btn">
-                🔄 Retry
-              </button>
-              <button onClick={handleTestAPI} className="test-btn">
-                🧪 Test API
-              </button>
-            </div>
-          </div>
-          {debugInfo.usingMockData && (
-            <div className="mock-data-notice">
-              📋 Showing mock data for demonstration
-            </div>
-          )}
-        </div>
+        <ErrorBanner
+          error={error}
+          onRetry={handleRetry}
+          showMockDataNotice={usingMockData}
+        />
       )}
 
       <SearchSection
-        placeholder="Search jobs by title, location, description..."
+        placeholder="Tìm kiếm theo tiêu đề, địa điểm, mô tả, danh mục..."
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         sortBy={sortBy}
         onSortChange={handleSortChange}
-        sortOptions={[
-          { value: 'created_at', label: 'Recently Created' },
-          { value: 'deadline', label: 'Deadline (Earliest)' },
-          { value: 'title', label: 'Title (A-Z)' },
-          { value: 'salary', label: 'Salary Range' }
-        ]}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        showResults={jobs.length !== allJobs.length}
+        resultsCount={jobs.length}
+        totalCount={allJobs.length}
+        showViewToggle={true}
+        storageKey="activeJobs"
       />
 
+      {/* Debug Info - Remove after testing */}
+      {/* <div style={{ 
+        background: '#f0f0f0', 
+        padding: '10px', 
+        margin: '10px 0', 
+        borderRadius: '5px',
+        fontSize: '12px'
+      }}>
+        <strong>Debug Info:</strong><br/>
+        Current View Mode: {viewMode}<br/>
+        Current Sort: {sortBy}<br/>
+        Show View Toggle: {showViewToggle ? 'Yes' : 'No'}<br/>
+        Jobs Count: {currentJobs.length}
+      </div> */}
+
       <JobsList
-        jobs={jobs}
+        jobs={currentJobs}
         loading={loading}
-        error={null} // Don't show error in JobsList since we handle it above
+        error={null}
         emptyStateConfig={{
-          icon: '📋',
-          title: searchQuery ? 'No matching jobs found' : 'No active jobs found',
+          icon: searchQuery ? 'search' : 'empty',
+          title: searchQuery ? 'Không tìm thấy công việc phù hợp' : 'Chưa có công việc nào',
           description: searchQuery
-            ? `No jobs match "${searchQuery}". Try adjusting your search.`
-            : 'Start by posting your first job to find great candidates.',
+            ? `Không có công việc nào phù hợp với "${searchQuery}". Thử điều chỉnh từ khóa tìm kiếm.`
+            : 'Bắt đầu bằng cách đăng tin tuyển dụng đầu tiên để tìm kiếm ứng viên tài năng.',
           showCreateButton: !searchQuery,
           onCreateJob: onCreateJob
         }}
@@ -442,9 +388,20 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         onViewApplications={handleViewApplications}
         showActions={true}
         showApplicationCount={true}
+        viewMode={viewMode}
       />
 
-      {/* Thêm EditJobModal vào component */}
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        itemsPerPage={itemsPerPage}
+        totalItems={jobs.length}
+        showInfo={true}
+      />
+
+      {/* Edit Job Modal */}
       <EditJobModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -452,56 +409,25 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         onSuccess={handleEditSuccess}
       />
 
-      {/* ✅ Enhanced debug panel */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="debug-panel">
-          <h4>🐛 Debug Information</h4>
-          <div className="debug-grid">
-            <div className="debug-section">
-              <h5>📊 Data</h5>
-              <p><strong>Total jobs:</strong> {allJobs.length}</p>
-              <p><strong>Filtered jobs:</strong> {jobs.length}</p>
-              <p><strong>Search query:</strong> "{searchQuery}"</p>
-              <p><strong>Sort by:</strong> {sortBy}</p>
-              <p><strong>Using mock data:</strong> {debugInfo.usingMockData ? 'Yes' : 'No'}</p>
-            </div>
+      {/* Delete Confirmation Popup */}
+      <PopUp
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Xác nhận xóa công việc"
+        type="danger"
+        icon={deleteIcon}
+        actions={deleteActions}
+        size="medium"
+      >
+        <p>Bạn có chắc chắn muốn xóa công việc <strong>"{jobToDelete?.title}"</strong>?</p>
+        <p>Tất cả dữ liệu liên quan sẽ bị mất vĩnh viễn.</p>
+      </PopUp>
 
-            <div className="debug-section">
-              <h5>🔐 Auth</h5>
-              <p><strong>User ID:</strong> {debugInfo.user?.id || 'N/A'}</p>
-              <p><strong>Email:</strong> {debugInfo.user?.email || 'N/A'}</p>
-              <p><strong>Role:</strong> {debugInfo.user?.role || 'N/A'}</p>
-              <p><strong>Is Recruiter:</strong> {debugInfo.isRecruiter ? 'Yes' : 'No'}</p>
-              <p><strong>Token:</strong> {debugInfo.token}</p>
-            </div>
-
-            <div className="debug-section">
-              <h5>🌐 API</h5>
-              <p><strong>Base URL:</strong> {debugInfo.apiBaseUrl}</p>
-              <p><strong>Last loaded:</strong> {debugInfo.lastLoaded ? new Date(debugInfo.lastLoaded).toLocaleTimeString() : 'Never'}</p>
-              {debugInfo.error && (
-                <div className="debug-error">
-                  <p><strong>Error:</strong> {debugInfo.error.message}</p>
-                  <p><strong>Status:</strong> {debugInfo.error.status}</p>
-                  <p><strong>Time:</strong> {new Date(debugInfo.error.timestamp).toLocaleTimeString()}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="debug-actions">
-            <button onClick={handleRetry} className="debug-btn">
-              🔄 Reload Jobs
-            </button>
-            <button onClick={handleTestAPI} className="debug-btn">
-              🧪 Test API
-            </button>
-            <button onClick={() => console.log('Debug info:', debugInfo)} className="debug-btn">
-              📋 Log Debug Info
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Notification Toast */}
+      <NotificationToast
+        notification={notification}
+        onClose={() => setNotification(null)}
+      />
     </div>
   );
 };

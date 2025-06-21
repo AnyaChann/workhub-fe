@@ -215,10 +215,10 @@
 
 /* ✅ Responsive Design */
 @media (max-width: 1024px) {
-  .layout-content {
+  /* .layout-content {
     flex-direction: column;
   }
-  
+   */
   .page-container {
     padding: 1rem;
   }
@@ -296,7 +296,7 @@
 }
 
 /* ✅ Dark Mode Support (Optional) */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   .recruiter-layout {
     background: #0f172a;
   }
@@ -307,7 +307,7 @@
   }
   
   .main-content {
-    /* background: #0f172a; */
+    background: #0f172a;
   }
   
   .modal-overlay {
@@ -320,7 +320,7 @@
       0 25px 50px -12px rgba(0, 0, 0, 0.5),
       0 0 0 1px rgba(255, 255, 255, 0.1);
   }
-}
+} */
 
 /* ✅ Print Styles */
 @media print {

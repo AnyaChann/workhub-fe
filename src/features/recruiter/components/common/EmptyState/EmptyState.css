@@ -1,0 +1,217 @@
+/* EmptyState Component */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state.small {
+  padding: 40px 16px;
+}
+
+.empty-state.medium {
+  padding: 60px 20px;
+}
+
+.empty-state.large {
+  padding: 80px 24px;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  color: #9ca3af;
+  margin-bottom: 24px;
+  opacity: 0.6;
+}
+
+.empty-state.small .empty-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 16px;
+}
+
+.empty-state.large .empty-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 32px;
+}
+
+.empty-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.empty-content {
+  max-width: 500px;
+  margin-bottom: 32px;
+}
+
+.empty-state.small .empty-content {
+  margin-bottom: 24px;
+}
+
+.empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+}
+
+.empty-state.small .empty-title {
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+}
+
+.empty-state.large .empty-title {
+  font-size: 1.75rem;
+  margin-bottom: 16px;
+}
+
+.empty-description {
+  font-size: 1rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.empty-state.small .empty-description {
+  font-size: 0.875rem;
+}
+
+.empty-state.large .empty-description {
+  font-size: 1.125rem;
+}
+
+.empty-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Action Button Styles */
+.empty-action .btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.empty-action .btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.empty-action .btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.empty-action .btn.secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.empty-action .btn.secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.empty-action .btn.success {
+  background: #10b981;
+}
+
+.empty-action .btn.success:hover {
+  background: #059669;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .empty-state {
+    padding: 40px 16px;
+  }
+
+  .empty-state.large {
+    padding: 60px 20px;
+  }
+
+  .empty-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .empty-title {
+    font-size: 1.25rem;
+  }
+
+  .empty-description {
+    font-size: 0.875rem;
+  }
+
+  .empty-action .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .empty-state {
+    padding: 32px 12px;
+  }
+
+  .empty-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  .empty-title {
+    font-size: 1.125rem;
+  }
+
+  .empty-content {
+    margin-bottom: 24px;
+  }
+}
+
+/* Animation */
+.empty-state {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .empty-state {
+    animation: none;
+  }
+
+  .empty-action .btn:hover {
+    transform: none;
+  }
+}

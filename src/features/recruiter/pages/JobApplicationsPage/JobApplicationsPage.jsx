@@ -355,7 +355,7 @@ const loadJobApplications = async () => {
       )}
 
       {/* ✅ Enhanced debug information */}
-      {process.env.NODE_ENV === 'development' && applications.length > 0 && (
+      {/* {process.env.NODE_ENV === 'development' && applications.length > 0 && (
         <div className="debug-info" style={{
           background: '#f3f4f6 !important',
           padding: '12px',
@@ -393,7 +393,7 @@ const loadJobApplications = async () => {
             </ul>
           </details>
         </div>
-      )}
+      )} */}
 
       <SearchSection 
         placeholder="Search applications by candidate name, email, or status..."

@@ -1,250 +1,131 @@
+/* Simplified JobsList Container */
 .jobs-list-container {
-  flex: 1;
+  width: 100%;
 }
 
-.loading-state,
-.error-state {
+/* Loading State */
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
 }
 
-/* Fix loading spinner with unique class name and more specific styles */
-.jobs-loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #0066cc;
-  border-radius: 50%;
-  animation: jobs-loading-spin 1s linear infinite;
-  margin-bottom: 16px;
-  /* Additional specificity to override conflicts */
-  display: inline-block;
-  box-sizing: border-box;
-  vertical-align: middle;
-}
-
-/* Unique keyframe name to avoid conflicts */
-@keyframes jobs-loading-spin {
-  0% { 
-    transform: rotate(0deg); 
-  }
-  100% { 
-    transform: rotate(360deg); 
-  }
-}
-
-/* Ensure spinner is visible and not affected by other styles */
-.loading-state .jobs-loading-spinner {
+.loading-spinner {
   position: relative;
-  z-index: 1;
-  flex-shrink: 0;
-}
-
-.error-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.error-state h3 {
-  margin: 0 0 8px 0;
-  color: #dc3545;
-}
-
-.error-state p {
-  color: #666;
-  margin-bottom: 20px;
-}
-
-.retry-btn {
-  background: #0066cc;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.retry-btn:hover {
-  background: #0052a3;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 64px;
+  width: 60px;
+  height: 60px;
   margin-bottom: 24px;
-  opacity: 0.5;
 }
 
-.empty-title {
-  font-size: 24px;
+.spinner-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.spinner-ring:nth-child(2) {
+  animation-delay: -0.4s;
+  border-top-color: #8b5cf6;
+}
+
+.spinner-ring:nth-child(3) {
+  animation-delay: -0.8s;
+  border-top-color: #06b6d4;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state h3 {
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #333;
-  margin: 0 0 12px 0;
+  color: #111827;
+  margin: 0 0 8px 0;
 }
 
-.empty-description {
-  font-size: 16px;
-  color: #666;
-  line-height: 1.5;
-  max-width: 400px;
-  margin: 0 0 24px 0;
+.loading-state p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
-.post-job-btn {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+/* Jobs Grid */
+.jobs-grid {
+  margin-bottom: 24px;
 }
 
-.post-job-btn:hover {
-  background: #218838;
+.jobs-grid.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
 }
 
-.results-summary {
-  padding: 16px 0;
-  border-bottom: 1px solid #e6e6e6;
-  margin-bottom: 20px;
+.jobs-grid.cell {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 cột */
+  grid-auto-rows: auto; /* hoặc 1fr nếu muốn hàng đều nhau */
+  gap: 16px;
 }
 
-.results-count {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .jobs-grid.grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 16px;
+  }
 }
 
-.jobs-list {
-  margin-bottom: 40px;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  padding: 20px 0;
-}
-
-.page-btn {
-  background: white;
-  border: 1px solid #ddd;
-  color: #333;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  min-width: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.page-btn:hover:not(:disabled) {
-  background: #f8f9fa;
-  border-color: #adb5bd;
-}
-
-.page-btn.active {
-  background: #0066cc;
-  border-color: #0066cc;
-  color: white;
-}
-
-.page-btn:disabled {
-  background: #f8f9fa;
-  border-color: #dee2e6;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-.prev-btn,
-.next-btn {
-  font-weight: 500;
-}
-
-.page-numbers {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.page-dots {
-  padding: 8px 4px;
-  color: #6c757d;
-  font-weight: bold;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .results-summary {
-    padding: 12px 0;
+  .jobs-grid.grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
-  
-  .pagination {
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 16px 0;
-  }
-  
-  .page-btn {
-    padding: 6px 8px;
-    font-size: 12px;
-    min-width: 32px;
-  }
-  
-  .empty-state {
-    padding: 40px 16px;
-  }
-  
-  .empty-icon {
-    font-size: 48px;
-  }
-  
-  .empty-title {
-    font-size: 20px;
-  }
-  
-  .empty-description {
-    font-size: 14px;
-  }
-  
-  /* Ensure spinner works on mobile */
-  .jobs-loading-spinner {
-    width: 32px;
-    height: 32px;
-    border-width: 2px;
+
+  .loading-state {
+    padding: 60px 16px;
   }
 }
 
-/* Additional fallback styles to prevent conflicts */
-.jobs-list-container * {
-  box-sizing: border-box;
+@media (max-width: 480px) {
+  .jobs-grid {
+    margin-bottom: 16px;
+  }
+
+  .loading-state {
+    padding: 40px 12px;
+  }
+
+  .loading-state h3 {
+    font-size: 1.125rem;
+  }
 }
 
-/* Force spinner visibility if hidden by global styles */
-.jobs-loading-spinner {
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: inline-block !important;
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  .spinner-ring {
+    animation: none;
+  }
+}
+
+/* Print */
+@media print {
+  .jobs-grid {
+    display: block !important;
+  }
+
+  .job-card {
+    break-inside: avoid;
+    margin-bottom: 20px;
+  }
 }

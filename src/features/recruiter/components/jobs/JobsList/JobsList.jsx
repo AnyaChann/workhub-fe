@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import JobCard from '../JobCard/JobCard';
+import EmptyState from '../../common/EmptyState/EmptyState';
 import './JobsList.css';
 
 const JobsList = ({ 
@@ -14,7 +15,8 @@ const JobsList = ({
   onContinuePosting,
   showActions = true,
   showApplicationCount = false,
-  isDraftView = false
+  isDraftView = false,
+  viewMode = 'grid'
 }) => {
   
   // Loading state
@@ -22,8 +24,13 @@ const JobsList = ({
     return (
       <div className="jobs-list-container">
         <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading jobs...</p>
+          <div className="loading-spinner">
+            <div className="spinner-ring"></div>
+            <div className="spinner-ring"></div>
+            <div className="spinner-ring"></div>
+          </div>
+          <h3>Đang tải danh sách công việc...</h3>
+          <p>Vui lòng chờ trong giây lát</p>
         </div>
       </div>
     );
@@ -33,17 +40,23 @@ const JobsList = ({
   if (error) {
     return (
       <div className="jobs-list-container">
-        <div className="error-state">
-          <span className="error-icon">⚠️</span>
-          <h3>Failed to load jobs</h3>
-          <p>{error}</p>
-          <button 
-            className="retry-btn"
-            onClick={() => window.location.reload()}
-          >
-            🔄 Retry
-          </button>
-        </div>
+        <EmptyState
+          icon="error"
+          title="Không thể tải danh sách công việc"
+          description={error || 'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'}
+          action={
+            <button 
+              className="btn"
+              onClick={() => window.location.reload()}
+            >
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 4v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Thử lại
+            </button>
+          }
+        />
       </div>
     );
   }
@@ -51,28 +64,34 @@ const JobsList = ({
   // Empty state
   if (!jobs.length) {
     const {
-      icon = '📋',
-      title = 'No jobs found',
-      description = 'Start by creating your first job posting.',
+      icon = isDraftView ? 'draft' : 'empty',
+      title = isDraftView ? 'Chưa có bản nháp nào' : 'Chưa có công việc nào',
+      description = isDraftView 
+        ? 'Bạn chưa có bản nháp nào được lưu. Tạo tin tuyển dụng mới để bắt đầu.' 
+        : 'Bắt đầu bằng cách tạo tin tuyển dụng đầu tiên của bạn.',
       showCreateButton = true,
       onCreateJob
     } = emptyStateConfig;
 
     return (
       <div className="jobs-list-container">
-        <div className="empty-state">
-          <span className="empty-icon">{icon}</span>
-          <h3 className="empty-title">{title}</h3>
-          <p className="empty-description">{description}</p>
-          {showCreateButton && onCreateJob && (
+        <EmptyState
+          icon={icon}
+          title={title}
+          description={description}
+          action={showCreateButton && onCreateJob ? (
             <button 
-              className="create-job-btn"
+              className="btn success"
               onClick={onCreateJob}
             >
-              ➕ Create Your First Job
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" strokeWidth="2"/>
+                <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              {isDraftView ? 'Tạo bản nháp mới' : 'Tạo tin tuyển dụng đầu tiên'}
             </button>
-          )}
-        </div>
+          ) : null}
+        />
       </div>
     );
   }
@@ -80,50 +99,21 @@ const JobsList = ({
   // Jobs list
   return (
     <div className="jobs-list-container">
-      <div className="jobs-list">
-        {/* List Header */}
-        <div className="list-header">
-          <div className="list-stats">
-            <span className="jobs-count">
-              {jobs.length} job{jobs.length !== 1 ? 's' : ''} found
-            </span>
-            {isDraftView && (
-              <span className="draft-notice">
-                📝 Draft jobs are not visible to candidates
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Jobs Grid */}
-        <div className="jobs-grid">
-          {jobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              onEdit={() => onEdit(job)} 
-              onDelete={() => onDelete(job)}
-              onDuplicate={() => onDuplicate(job.id)}
-              onViewApplications={() => onViewApplications(job)}
-              onContinuePosting={onContinuePosting}
-              showActions={showActions}
-              showApplicationCount={showApplicationCount}
-              isDraftView={isDraftView}
-            />
-          ))}
-        </div>
-
-        {/* List Footer */}
-        <div className="list-footer">
-          <div className="pagination-info">
-            Showing {jobs.length} jobs
-          </div>
-          
-          {/* Future: Add pagination controls here */}
-          <div className="pagination-controls">
-            {/* Pagination will be added later */}
-          </div>
-        </div>
+      <div className={`jobs-grid ${viewMode}`}>
+        {jobs.map((job) => (
+          <JobCard
+            key={job.id}
+            job={job}
+            onEdit={() => onEdit(job)} 
+            onDelete={() => onDelete(job)}
+            onDuplicate={() => onDuplicate(job.id)}
+            onViewApplications={() => onViewApplications(job)}
+            onContinuePosting={onContinuePosting}
+            showActions={showActions}
+            showApplicationCount={showApplicationCount}
+            isDraftView={isDraftView}
+          />
+        ))}
       </div>
     </div>
   );

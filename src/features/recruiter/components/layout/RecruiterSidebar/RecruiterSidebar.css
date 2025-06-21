@@ -147,26 +147,28 @@
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-sidebar {
-    width: 100%;
+    /* width: 100%; */
+    max-width: 100px;
     height: auto;
     border-right: none;
     border-bottom: 1px solid #e6e6e6;
+    align-items: center;
   }
   
-  .sidebar-section {
+  /* .sidebar-section {
     padding: 16px;
   }
   
   .section-header {
     margin-bottom: 12px;
-  }
+  } */
   
-  .sidebar-nav {
+  /* .sidebar-nav {
     flex-direction: row;
     overflow-x: auto;
     gap: 8px;
     padding-bottom: 4px;
-  }
+  } */
   
   .nav-item {
     min-width: 120px;

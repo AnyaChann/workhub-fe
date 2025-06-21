@@ -19,7 +19,7 @@ export const useCreateJobForm = (initialData = {}) => {
     showCompanyNameAndLogo: true,
     
     // Job Details
-    category_id: '',
+    categoryId: '',
     position_id: '',
     type_id: '', // job type (full-time, part-time, etc.)
     experience: 'entry-level', // entry-level, mid-level, senior-level, executive
@@ -132,8 +132,8 @@ export const useCreateJobForm = (initialData = {}) => {
       newErrors.description = 'Job description is required';
     }
     
-    if (!formData.category_id) {
-      newErrors.category_id = 'Category is required';
+    if (!formData.categoryId) {
+      newErrors.categoryId = 'Category is required';
     }
     
     if (!formData.position_id) {
@@ -179,7 +179,7 @@ export const useCreateJobForm = (initialData = {}) => {
       title: formData.title,
       location: formData.location,
       description: formData.description,
-      category_id: parseInt(formData.category_id),
+      categoryId: parseInt(formData.categoryId),
       position_id: parseInt(formData.position_id),
       type_id: parseInt(formData.type_id),
       experience: formData.experience,
