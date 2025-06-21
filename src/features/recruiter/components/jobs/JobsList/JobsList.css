@@ -65,14 +65,15 @@
 
 .jobs-grid.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  align-items: start;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
 .jobs-grid.cell {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3 cột */
-  grid-auto-rows: auto; /* hoặc 1fr nếu muốn hàng đều nhau */
+  align-items: start;
   gap: 16px;
 }
 

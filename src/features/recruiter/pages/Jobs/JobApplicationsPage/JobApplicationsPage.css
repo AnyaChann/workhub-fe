@@ -1,5 +1,5 @@
-﻿/* Modern Expired Jobs Page */
-.expired-jobs-page {
+/* Modern Expired Jobs Page */
+.job-applications-page {
   min-height: 100vh;
   /* background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); */
   padding: 14px;
@@ -36,7 +36,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .expired-jobs-page {
+  .job-applications-page {
     padding: 16px;
   }
 }

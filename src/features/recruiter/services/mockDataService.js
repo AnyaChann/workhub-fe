@@ -177,5 +177,90 @@ export const mockDataService = {
       'draft-1': 0
     };
     return counts[jobId] || Math.floor(Math.random() * 25) + 1;
+  },
+
+  getJobApplications(jobId) {
+    const applications = [
+      {
+        id: 'app_1',
+        applicationId: 'mock_app_001',
+        jobId: jobId,
+        userId: 'user_1',
+        userFullname: 'Nguyễn Văn An',
+        userEmail: 'nguyenvanan@email.com',
+        userPhone: '0901234567',
+        status: 'pending',
+        appliedAt: '2024-01-15T10:30:00Z',
+        resumeFile: ['Nguyen_Van_An_CV.pdf'],
+        resumeId: 'resume_1',
+        coverLetter: 'Tôi rất quan tâm đến vị trí này và tin rằng kinh nghiệm của tôi phù hợp với yêu cầu công việc.',
+        canUpdate: true
+      },
+      {
+        id: 'app_2',
+        applicationId: 'mock_app_002',
+        jobId: jobId,
+        userId: 'user_2',
+        userFullname: 'Trần Thị Bình',
+        userEmail: 'tranthibinh@email.com',
+        userPhone: '0902345678',
+        status: 'accepted',
+        appliedAt: '2024-01-14T14:20:00Z',
+        resumeFile: ['Tran_Thi_Binh_Resume.pdf'],
+        resumeId: 'resume_2',
+        coverLetter: 'Với 3 năm kinh nghiệm trong lĩnh vực này, tôi tin tưởng có thể đóng góp tích cực cho công ty.',
+        canUpdate: true
+      },
+      {
+        id: 'app_3',
+        applicationId: 'mock_app_003',
+        jobId: jobId,
+        userId: 'user_3',
+        userFullname: 'Lê Văn Cường',
+        userEmail: 'levancuong@email.com',
+        userPhone: '0903456789',
+        status: 'rejected',
+        appliedAt: '2024-01-13T09:15:00Z',
+        resumeFile: ['Le_Van_Cuong_CV.pdf'],
+        resumeId: 'resume_3',
+        coverLetter: null,
+        canUpdate: true
+      },
+      {
+        id: 'app_4',
+        applicationId: 'mock_app_004',
+        jobId: jobId,
+        userId: 'user_4',
+        userFullname: 'Phạm Thị Dung',
+        userEmail: 'phamthidung@email.com',
+        userPhone: '0904567890',
+        status: 'reviewing',
+        appliedAt: '2024-01-12T16:45:00Z',
+        resumeFile: ['Pham_Thi_Dung_Resume.pdf'],
+        resumeId: 'resume_4',
+        coverLetter: 'Tôi rất hứng thú với cơ hội làm việc tại công ty và mong muốn được thể hiện khả năng của mình.',
+        canUpdate: true
+      },
+      {
+        id: 'app_5',
+        applicationId: 'mock_app_005',
+        jobId: jobId,
+        userId: 'user_5',
+        userFullname: 'Hoàng Văn Em',
+        userEmail: 'hoangvanem@email.com',
+        userPhone: '0905678901',
+        status: 'interviewed',
+        appliedAt: '2024-01-11T11:30:00Z',
+        resumeFile: ['Hoang_Van_Em_CV.pdf'],
+        resumeId: 'resume_5',
+        coverLetter: 'Với background về công nghệ và passion cho innovation, tôi tin mình sẽ là ứng viên phù hợp.',
+        canUpdate: true
+      }
+    ];
+
+    return applications.map(app => ({
+      ...app,
+      jobTitle: this.mockJobs.find(job => job.id === jobId)?.title || 'Unknown Job'
+    }));
   }
 };

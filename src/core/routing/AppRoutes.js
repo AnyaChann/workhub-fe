@@ -9,10 +9,10 @@ const Home = React.lazy(() => import('../../features/marketing/pages/Home/Home')
 const Pricing = React.lazy(() => import('../../features/marketing/pages/Pricing/Pricing'));
 
 // ✅ Sửa import path cho ApplicationsPage - đúng thư mục
-const ApplicationsPage = React.lazy(() => import('../../features/recruiter/pages/ApplicationPage/ApplicationsPage'));
+const ApplicationsPage = React.lazy(() => import('../../features/recruiter/components/applications/ApplicationPage/ApplicationsPage'));
 
 // ✅ Thêm import cho JobApplicationsPage
-const JobApplicationsPage = React.lazy(() => import('../../features/recruiter/pages/JobApplicationsPage/JobApplicationsPage'));
+const JobApplicationsPage = React.lazy(() => import('../../features/recruiter/pages/Jobs/JobApplicationsPage/JobApplicationsPage'));
 
 // Auth pages
 const Login = React.lazy(() => import('../../features/auth/pages/Login/Login'));

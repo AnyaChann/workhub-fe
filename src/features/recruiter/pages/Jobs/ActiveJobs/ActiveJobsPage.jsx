@@ -6,10 +6,10 @@ import { mockDataService } from '../../../services/mockDataService';
 import PageHeader from '../../../components/common/PageHeader/PageHeader';
 import SearchSection from '../../../components/common/SearchSection/SearchSection';
 import JobsList from '../../../components/jobs/JobsList/JobsList';
+import PageFooter from '../../../components/common/PageFooter/PageFooter';
 import PopUp from '../../../components/common/PopUp/PopUp';
 import ErrorBanner from '../../../components/common/ErrorBanner/ErrorBanner';
 import NotificationToast from '../../../components/common/NotificationToast/NotificationToast';
-import Pagination from '../../../components/common/Pagination/Pagination';
 import EditJobModal from '../../../components/Modal/EditJobModal/EditJobModal';
 import './ActiveJobsPage.css';
 
@@ -20,7 +20,8 @@ const ActiveJobsPage = ({ onCreateJob }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [lastUpdated, setLastUpdated] = useState(null);
+
   // Load initial preferences from localStorage
   const getInitialPreferences = () => {
     try {
@@ -29,23 +30,22 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         const { sortBy, viewMode } = JSON.parse(savedPreferences);
         return {
           sortBy: sortBy || 'newest',
-          viewMode: viewMode || 'grid'
+          viewMode: viewMode || 'list'
         };
       }
     } catch (error) {
       console.warn('Failed to load preferences:', error);
     }
-    return { sortBy: 'newest', viewMode: 'grid' };
+    return { sortBy: 'newest', viewMode: 'list' };
   };
 
   const initialPreferences = getInitialPreferences();
   const [sortBy, setSortBy] = useState(initialPreferences.sortBy);
   const [viewMode, setViewMode] = useState(initialPreferences.viewMode);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [usingMockData, setUsingMockData] = useState(false);
-  const showViewToggle = true; // Define the variable
 
   // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -117,6 +117,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
 
       setAllJobs(activeJobs);
       setJobs(activeJobs);
+      setLastUpdated(new Date());
 
     } catch (err) {
       console.error('❌ Error loading jobs:', err);
@@ -146,7 +147,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
       if (shouldShowMockData && process.env.NODE_ENV === 'development') {
         console.log('🔄 Using mock data for development...');
         const mockJobs = mockDataService.getActiveJobs();
-        
+
         // Add applications count to mock jobs
         const jobsWithApplications = mockJobs.map(job => ({
           ...job,
@@ -156,6 +157,7 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         setAllJobs(jobsWithApplications);
         setJobs(jobsWithApplications);
         setUsingMockData(true);
+        setLastUpdated(new Date());
       }
 
     } finally {
@@ -285,24 +287,58 @@ const ActiveJobsPage = ({ onCreateJob }) => {
   const endIndex = startIndex + itemsPerPage;
   const currentJobs = jobs.slice(startIndex, endIndex);
 
+  // Footer quick actions
+  const footerQuickActions = [
+    {
+      label: 'Đăng công việc mới',
+      icon: '➕',
+      onClick: onCreateJob,
+      variant: 'primary',
+      tooltip: 'Tạo tin tuyển dụng mới'
+    },
+    {
+      label: 'Làm mới',
+      icon: '🔄',
+      onClick: handleRetry,
+      variant: 'secondary',
+      disabled: loading,
+      tooltip: 'Tải lại danh sách công việc'
+    },
+    {
+      label: 'Xuất Excel',
+      icon: '📊',
+      onClick: () => showNotification('Export feature coming soon!', 'info'),
+      variant: 'secondary',
+      tooltip: 'Xuất danh sách ra file Excel'
+    }
+  ];
+
+  // Footer stats
+  const footerStats = [
+    { label: 'Tổng công việc', value: allJobs.length, color: '#3b82f6' },
+    { label: 'Đang hiển thị', value: currentJobs.length, color: '#10b981' },
+    { label: 'Đang tìm kiếm', value: searchQuery ? jobs.length : 'Không', color: searchQuery ? '#f59e0b' : '#6b7280' },
+    { label: 'Trang hiện tại', value: `${currentPage}/${totalPages}`, color: '#8b5cf6' }
+  ];
+
   // Delete confirmation icon and actions
   const deleteIcon = (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2"/>
-      <line x1="15" y1="9" x2="9" y2="15" stroke="#ef4444" strokeWidth="2"/>
-      <line x1="9" y1="9" x2="15" y2="15" stroke="#ef4444" strokeWidth="2"/>
+      <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2" />
+      <line x1="15" y1="9" x2="9" y2="15" stroke="#ef4444" strokeWidth="2" />
+      <line x1="9" y1="9" x2="15" y2="15" stroke="#ef4444" strokeWidth="2" />
     </svg>
   );
 
   const deleteActions = (
     <>
-      <button 
+      <button
         className="btn-secondary"
         onClick={() => setShowDeleteConfirm(false)}
       >
         Hủy bỏ
       </button>
-      <button 
+      <button
         className="btn-danger"
         onClick={confirmDeleteJob}
       >
@@ -354,21 +390,6 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         storageKey="activeJobs"
       />
 
-      {/* Debug Info - Remove after testing */}
-      {/* <div style={{ 
-        background: '#f0f0f0', 
-        padding: '10px', 
-        margin: '10px 0', 
-        borderRadius: '5px',
-        fontSize: '12px'
-      }}>
-        <strong>Debug Info:</strong><br/>
-        Current View Mode: {viewMode}<br/>
-        Current Sort: {sortBy}<br/>
-        Show View Toggle: {showViewToggle ? 'Yes' : 'No'}<br/>
-        Jobs Count: {currentJobs.length}
-      </div> */}
-
       <JobsList
         jobs={currentJobs}
         loading={loading}
@@ -391,14 +412,38 @@ const ActiveJobsPage = ({ onCreateJob }) => {
         viewMode={viewMode}
       />
 
-      {/* Pagination */}
-      <Pagination
+      {/* Page Footer with Pagination */}
+      <PageFooter
+        // Pagination props
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
         itemsPerPage={itemsPerPage}
         totalItems={jobs.length}
         showInfo={true}
+        forceShowPagination={true}
+        // maxVisiblePages={isMobile ? 5 : 7}
+
+        // Material UI Pagination props
+        // paginationSize={isMobile ? 'small' : 'medium'}
+        paginationVariant="outlined"
+        paginationColor="primary"
+        paginationShape="rounded"
+        // showFirstButton={!isMobile}
+        // showLastButton={!isMobile}
+
+        // Footer content props
+        showFooterInfo={true}
+        showQuickActions={false}
+        quickActions={footerQuickActions}
+        showLastUpdated={true}
+        lastUpdated={lastUpdated}
+        showStats={false}
+        stats={footerStats}
+
+        // Styling
+        variant="detailed"
+        className={`active-jobs-footer ${loading ? 'loading' : ''} ${error ? 'error' : 'success'}`}
       />
 
       {/* Edit Job Modal */}

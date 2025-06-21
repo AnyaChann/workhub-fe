@@ -1,169 +1,185 @@
-/* Pagination Component */
-.pagination-container {
-  background: white;
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-top: 24px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+/* Clean Pagination Styles - Match EXACT Design */
+.pagination-container.clean {
   display: flex;
-  align-items: center;
+  flex-direction: row;
   justify-content: space-between;
-  gap: 20px;
+  align-items: center;
+  padding: 16px 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin-top: 0;
+  gap: 16px;
 }
 
-.pagination-info {
-  font-size: 0.875rem;
-  color: #6b7280;
+.pagination-info-left {
   flex-shrink: 0;
+  order: 1; /* Bên trái */
 }
 
-.pagination-info strong {
-  color: #111827;
-  font-weight: 600;
+.pagination-controls {
+  flex-shrink: 0;
+  order: 2; /* Bên phải */
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.pagination-info-mobile {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 8px;
 }
 
-.page-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 40px;
-  justify-content: center;
+/* Override Material UI styles để match CHÍNH XÁC hình mẫu */
+.pagination-container.clean .MuiPaginationItem-root {
+  min-width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  background-color: transparent !important;
+  color: #6b7280 !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  margin: 0 4px !important;
+  font-family: inherit !important;
+  transition: all 0.2s ease !important;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  transform: translateY(-1px);
+.pagination-container.clean .MuiPaginationItem-root:hover {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
-.page-btn.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+/* Selected state - Light gray background như hình */
+.pagination-container.clean .MuiPaginationItem-root.Mui-selected {
+  background-color: #e5e7eb !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
 }
 
-.page-btn:disabled {
-  background: #f9fafb;
-  border-color: #e5e7eb;
-  color: #9ca3af;
-  cursor: not-allowed;
+.pagination-container.clean .MuiPaginationItem-root.Mui-selected:hover {
+  background-color: #d1d5db !important;
+}
+
+/* Ellipsis */
+.pagination-container.clean .MuiPaginationItem-ellipsis {
+  border: none !important;
+  background-color: transparent !important;
+  color: #9ca3af !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+}
+
+.pagination-container.clean .MuiPaginationItem-ellipsis:hover {
+  background-color: transparent !important;
+  color: #9ca3af !important;
+}
+
+/* Previous/Next buttons */
+.pagination-container.clean .MuiPaginationItem-previousNext {
+  border-radius: 8px !important;
+  padding: 0 12px !important;
+  min-width: 40px !important;
+}
+
+.pagination-container.clean .MuiPaginationItem-previousNext .MuiSvgIcon-root {
+  font-size: 1.25rem !important;
+}
+
+/* Remove all effects */
+.pagination-container.clean .MuiPaginationItem-root::before {
+  display: none;
+}
+
+.pagination-container.clean .MuiPaginationItem-root:active {
   transform: none;
 }
 
-.page-btn svg {
-  width: 14px;
-  height: 14px;
+/* Focus states */
+.pagination-container.clean .MuiPaginationItem-root:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: none !important;
 }
 
-.prev-btn .btn-text {
-  margin-left: 2px;
+/* Ensure no gap between items như hình */
+.pagination-container.clean .MuiPagination-ul {
+  gap: 0px !important;
+  flex-wrap: nowrap !important;
 }
 
-.next-btn .btn-text {
-  margin-right: 2px;
-}
-
-.page-numbers {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.page-ellipsis {
-  padding: 8px 4px;
-  color: #9ca3af;
-  font-weight: 600;
-  font-size: 0.875rem;
-  user-select: none;
-}
-
-/* Mobile Responsive */
+/* Responsive Design */
 @media (max-width: 768px) {
-  .pagination-container {
+  .pagination-container.clean {
     flex-direction: column;
-    gap: 16px;
-    text-align: center;
-    padding: 16px 20px;
-  }
-
-  .pagination {
-    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
     justify-content: center;
-    gap: 4px;
   }
 
-  .page-btn {
-    padding: 6px 10px;
-    min-width: 36px;
-    font-size: 0.8rem;
+  .pagination-info-left {
+    order: 2; /* Info xuống dưới trên mobile */
+    display: none; /* Ẩn info dài trên mobile */
   }
 
-  .prev-btn .btn-text,
-  .next-btn .btn-text {
-    display: none;
+  .pagination-controls {
+    order: 1; /* Controls lên trên trên mobile */
+  }
+
+  .pagination-container.clean .MuiPaginationItem-root {
+    min-width: 32px !important;
+    height: 32px !important;
+    font-size: 0.8rem !important;
+    margin: 0 2px !important;
+  }
+
+  .pagination-container.clean .MuiPaginationItem-previousNext {
+    padding: 0 8px !important;
+    min-width: 32px !important;
+  }
+
+  .pagination-container.clean .MuiPaginationItem-previousNext .MuiSvgIcon-root {
+    font-size: 1rem !important;
   }
 }
 
 @media (max-width: 480px) {
-  .pagination-container {
-    padding: 12px 16px;
+  .pagination-container.clean .MuiPaginationItem-root {
+    min-width: 28px !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+    margin: 0 1px !important;
   }
 
-  .page-numbers {
-    gap: 2px;
-  }
-
-  .page-btn {
-    padding: 4px 8px;
-    min-width: 32px;
-    font-size: 0.75rem;
-  }
-
-  .page-ellipsis {
-    padding: 4px 2px;
-    font-size: 0.75rem;
+  .pagination-container.clean .MuiPaginationItem-previousNext {
+    padding: 0 6px !important;
+    min-width: 28px !important;
   }
 }
 
-/* Focus States */
-.page-btn:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-  .pagination-container,
-  .page-btn {
-    border: 2px solid;
-  }
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .page-btn {
-    transition: none;
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .pagination-container.clean .MuiPaginationItem-root {
+    color: #9ca3af !important;
   }
 
-  .page-btn:hover:not(:disabled) {
-    transform: none;
+  .pagination-container.clean .MuiPaginationItem-root:hover {
+    background-color: #374151 !important;
+    color: #d1d5db !important;
+  }
+
+  .pagination-container.clean .MuiPaginationItem-root.Mui-selected {
+    background-color: #4b5563 !important;
+    color: #f9fafb !important;
+  }
+
+  .pagination-container.clean .MuiPaginationItem-root.Mui-selected:hover {
+    background-color: #6b7280 !important;
+  }
+
+  .pagination-info-left,
+  .pagination-info-mobile {
+    color: #9ca3af;
   }
 }
 
@@ -171,5 +187,25 @@
 @media print {
   .pagination-container {
     display: none;
+  }
+}
+
+/* Remove all animations */
+.pagination-container.clean .MuiPaginationItem-root {
+  animation: none !important;
+}
+
+/* High contrast */
+@media (prefers-contrast: high) {
+  .pagination-container.clean .MuiPaginationItem-root.Mui-selected {
+    background-color: #000 !important;
+    color: #fff !important;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .pagination-container.clean .MuiPaginationItem-root {
+    transition: none !important;
   }
 }

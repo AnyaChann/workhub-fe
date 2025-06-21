@@ -15,8 +15,8 @@ import ExpiredJobsPage from '../../../pages/Jobs/ExpiredJobs/ExpiredJobsPage';
 import CreateJobPage from '../../../pages/Jobs/CreateJob/CreateJobPage';
 
 // ✅ Import các components Applications
-import ApplicationsPage from '../../../pages/ApplicationPage/ApplicationsPage';
-import JobApplicationsPage from '../../../pages/JobApplicationsPage/JobApplicationsPage';
+import ApplicationsPage from '../../applications/ApplicationPage/ApplicationsPage';
+import JobApplicationsPage from '../../../pages/Jobs/JobApplicationsPage/JobApplicationsPage';
 
 // Account Pages
 import AccountSettingsPage from '../../../pages/Account/Settings/AccountSettingsPage';

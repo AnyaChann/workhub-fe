@@ -91,21 +91,35 @@
 .active-jobs-page > * + * {
   margin-top: 17px;
 }
+.draft-jobs-page > * + * {
+  margin-top: 17px;
+}
+.expired-jobs-page > * + * {
+  margin-top: 17px;
+}
 
 /* Content Spacing */
-.active-jobs-page .page-header {
+.active-jobs-page .page-header,
+.draft-jobs-page .page-header,
+.expired-jobs-page {
   margin-bottom: 17px;
 }
 
-.active-jobs-page .error-banner {
+.active-jobs-page .error-banner,
+.draft-jobs-page .error-banner,
+.expired-jobs-page .error-banner {
   margin-bottom: 24px;
 }
 
-.active-jobs-page .search-section {
+.active-jobs-page .search-section,
+.draft-jobs-page .search-section,
+.expired-jobs-page .search-section {
   margin-bottom: 20px;
 }
 
-.active-jobs-page .jobs-list-container {
+.active-jobs-page .jobs-list-container,
+.draft-jobs-page .jobs-list-container,
+.expired-jobs-page .jobs-list-container {
   margin-bottom: 24px;
 }
 
@@ -130,7 +144,7 @@
   }
 
   .active-jobs-page .page-header {
-    margin-bottom: 24px;
+    /* margin-bottom: 24px; */
   }
 
   .active-jobs-page .error-banner,
@@ -150,7 +164,7 @@
   }
 
   .active-jobs-page .page-header {
-    margin-bottom: 20px;
+    /* margin-bottom: 20px; */
   }
 
   .active-jobs-page .error-banner,

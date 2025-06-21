@@ -39,13 +39,13 @@ const RecruiterSidebar = ({ onTabChange, onCreateJob }) => {
         <div className="section-header">
           <span className="section-icon">📁</span>
           <span className="section-title">Jobs</span>
-          <button 
+          {/* <button 
             className="create-btn" 
             onClick={handleCreateJob}
             title="Create new job posting"
           >
             + Create
-          </button>
+          </button> */}
         </div>
         
         <nav className="sidebar-nav">

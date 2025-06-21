@@ -10,7 +10,7 @@ const SearchSection = ({
   onSearchChange,
   sortBy,
   onSortChange,
-  viewMode = 'grid',
+  viewMode = 'list',
   onViewModeChange,
   placeholder = 'Tìm kiếm...',
   showResults = false,
@@ -31,7 +31,7 @@ const SearchSection = ({
     { 
       mode: 'cell', 
       label: 'Bảng', 
-      tooltip: 'Hiển thị dưới dạng bảng với thông tin chi tiết',
+      tooltip: 'Hiển thị dưới dạng bảng (tương tự lưới 3x3)',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 3h18v18H3V3z" stroke="currentColor" strokeWidth="2" fill="none" />
@@ -45,7 +45,7 @@ const SearchSection = ({
     { 
       mode: 'grid', 
       label: 'Lưới', 
-      tooltip: 'Hiển thị dưới dạng thẻ lưới (mặc định)',
+      tooltip: 'Hiển thị dưới dạng thẻ lưới',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" />
@@ -58,7 +58,7 @@ const SearchSection = ({
     { 
       mode: 'list', 
       label: 'Danh sách', 
-      tooltip: 'Hiển thị dưới dạng danh sách dọc',
+      tooltip: 'Hiển thị dưới dạng danh sách dọc (mặc định)',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" />
@@ -178,7 +178,7 @@ const SearchSection = ({
               content="Chọn cách sắp xếp danh sách công việc"
               theme="light"
               animation="scale"
-              delay={[1000, 100]}
+              delay={[500, 100]}
             >
               <label htmlFor="sort-select">Sắp xếp:</label>
             </Tippy>

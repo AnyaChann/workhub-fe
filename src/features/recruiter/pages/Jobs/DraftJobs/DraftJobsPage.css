@@ -1,5 +1,25 @@
-﻿.draftjobs-page {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+﻿/* Modern Draft Jobs Page */
+.draft-jobs-page {
+  min-height: 100vh;
+  /* background: linear-gradient(135deg, #fefbf3 0%, #fef3c7 100%); */
+  padding: 14px;
+}
+
+/* .draft-jobs-footer {
+  margin-top: 32px;
+}
+
+.draft-jobs-footer.error {
+  border-left: 4px solid #ef4444;
+}
+
+.draft-jobs-footer.success {
+  border-left: 4px solid #f59e0b;
+} */
+
+/* Responsive */
+@media (max-width: 768px) {
+  .draft-jobs-page {
+    padding: 16px;
+  }
 }

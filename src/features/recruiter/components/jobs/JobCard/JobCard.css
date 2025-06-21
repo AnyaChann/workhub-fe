@@ -29,11 +29,11 @@
   margin-bottom: 0;
 }
 
-.title-section {
+.job-header .title-section {
   margin-bottom: 20px;
 }
 
-.title-row {
+.job-header .title-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -41,7 +41,7 @@
   margin-bottom: 8px;
 }
 
-.job-title {
+.job-header .job-title {
   font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
