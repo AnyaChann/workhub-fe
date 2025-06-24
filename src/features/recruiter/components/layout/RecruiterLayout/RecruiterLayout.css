@@ -31,11 +31,12 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem;
-  min-height: calc(100vh - 120px);
+  /* min-height: calc(100vh - 120px); */
 }
 
 /* ✅ Modal Overlay - Enhanced */
-.modal-overlay {
+.modal-overlay
+ {
   position: fixed;
   top: 0;
   left: 0;

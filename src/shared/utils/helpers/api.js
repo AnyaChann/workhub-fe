@@ -29,7 +29,7 @@ const getValidToken = () => {
   if (!token || token === 'null' || token === 'undefined') {
     return null;
   }
-  
+
   // Basic JWT format validation (should have 3 parts separated by dots)
   const parts = token.split('.');
   if (parts.length !== 3) {
@@ -38,7 +38,7 @@ const getValidToken = () => {
     localStorage.removeItem('user');
     return null;
   }
-  
+
   return token;
 };
 
@@ -46,7 +46,7 @@ const getValidToken = () => {
 const requiresAuth = (url) => {
   const publicEndpoints = [
     '/recruiter/login',
-    '/candidate/login', 
+    '/candidate/login',
     '/admin/login',
     '/recruiter/register',
     '/candidate/register',
@@ -62,7 +62,7 @@ const requiresAuth = (url) => {
     '/health',
     '/status'
   ];
-  
+
   return !publicEndpoints.some(endpoint => url.includes(endpoint));
 };
 
@@ -71,7 +71,7 @@ api.interceptors.request.use(
   (config) => {
     const requestId = `${Date.now()}-${Math.random()}`;
     config.metadata = { requestId, startTime: Date.now() };
-    
+
     // Add auth token for protected endpoints
     if (requiresAuth(config.url)) {
       const token = getValidToken();
@@ -81,10 +81,10 @@ api.interceptors.request.use(
         console.warn('⚠️ No valid token found for protected endpoint:', config.url);
       }
     }
-    
+
     // Security headers
     config.headers['X-Requested-With'] = 'XMLHttpRequest';
-    
+
     // ✅ Enhanced logging for query parameters
     if (process.env.NODE_ENV === 'development') {
       console.log('🚀 API Request:', {
@@ -102,7 +102,7 @@ api.interceptors.request.use(
         }
       });
     }
-    
+
     return config;
   },
   (error) => {
@@ -116,7 +116,7 @@ api.interceptors.response.use(
   (response) => {
     const requestId = response.config.metadata?.requestId;
     const duration = Date.now() - (response.config.metadata?.startTime || 0);
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ API Response:', {
         id: requestId,
@@ -127,19 +127,19 @@ api.interceptors.response.use(
         data: response.data
       });
     }
-    
+
     // Clear retry tracker on success
     if (requestId) {
       retryTracker.delete(requestId);
     }
-    
+
     return response.data;
   },
   async (error) => {
     const config = error.config;
     const requestId = config?.metadata?.requestId;
     const duration = Date.now() - (config?.metadata?.startTime || 0);
-    
+
     console.error('❌ API Error Details:', {
       id: requestId,
       status: error.response?.status,
@@ -175,15 +175,18 @@ api.interceptors.response.use(
     } else if (error.response?.status === 403) {
       handleForbidden(config);
     } else if (error.response?.status === 500) {
-      handleServerError();
+      // ✅ UPDATED: Pass config to handleServerError but don't redirect
+      handleServerError(config);
     } else if (error.response?.status >= 500 && error.response?.status < 600) {
-      handleServerError();
+      // ✅ UPDATED: Pass config to handleServerError but don't redirect
+      handleServerError(config);
     } else if (error.code === 'ECONNABORTED') {
       console.error('⏰ Request timeout:', config?.url);
     } else if (!error.response) {
       console.error('🌐 Network error or server unreachable');
     }
-    
+
+    // ✅ Always reject the error so components can handle it
     return Promise.reject(error);
   }
 );
@@ -191,22 +194,22 @@ api.interceptors.response.use(
 // Handle 401 Unauthorized
 const handleUnauthorized = async (config) => {
   console.log('🔒 Handling 401 Unauthorized');
-  
+
   // Clear invalid auth data
   localStorage.removeItem('authToken');
   localStorage.removeItem('user');
-  
+
   // Avoid redirect loops for auth pages
   if (config?.url && !requiresAuth(config.url)) {
     return;
   }
-  
+
   // Check if we're already on auth page to prevent redirect loops
   const currentPath = window.location.pathname;
-  const isAuthPage = ['/login', '/register', '/forgot-password'].some(path => 
+  const isAuthPage = ['/login', '/register', '/forgot-password'].some(path =>
     currentPath.startsWith(path)
   );
-  
+
   if (!isAuthPage) {
     console.log('🔄 Redirecting to login due to 401');
     setTimeout(() => {
@@ -224,17 +227,17 @@ const handleForbidden = (config) => {
     method: config?.method,
     isPublicEndpoint: config?.url ? !requiresAuth(config.url) : false
   });
-  
+
   // Special handling for login endpoints
   if (config?.url && config.url.includes('/login')) {
     console.error('🚨 Login endpoint blocked by server!');
     console.error('💡 Checking SecurityConfig match...');
-    
+
     // Don't redirect to forbidden page for login attempts
     // Instead, let the login form handle the error
     return;
   }
-  
+
   const currentPath = window.location.pathname;
   if (!currentPath.includes('/forbidden')) {
     setTimeout(() => {
@@ -244,22 +247,30 @@ const handleForbidden = (config) => {
 };
 
 // Handle 5xx Server Errors
-const handleServerError = () => {
+const handleServerError = (config) => {
   console.log('🔧 Handling Server Error');
-  
-  const currentPath = window.location.pathname;
-  if (!currentPath.includes('/500')) {
-    setTimeout(() => {
-      window.location.href = '/500';
-    }, 100);
-  }
+  console.error('🚨 Server Error Details:', {
+    url: config?.url,
+    method: config?.method,
+    status: 'Server Error (5xx)',
+    message: 'Let components handle the error locally'
+  });
+
+  // ✅ DON'T REDIRECT - Let components handle errors themselves
+  // ❌ REMOVED: Automatic redirect to /500 page
+  // const currentPath = window.location.pathname;
+  // if (!currentPath.includes('/500')) {
+  //   setTimeout(() => {
+  //     window.location.href = '/500';
+  //   }, 100);
+  // }
 };
 
 // ✅ Add connection test utility with correct URL
 export const testConnection = async () => {
   try {
     console.log('� Testing connection to:', BASE_URL);
-    
+
     // Try login endpoint to test security config
     const testUrl = `${BASE_URL}/recruiter/login?email=test&password=test`;
     const response = await fetch(testUrl, {
@@ -269,21 +280,21 @@ export const testConnection = async () => {
       },
       body: ''
     });
-    
+
     console.log('✅ Connection test result:', {
       url: testUrl,
       status: response.status,
       ok: response.ok,
       expectation: 'Should return 401 (unauthorized) or 400 (bad request), not 403 (forbidden)'
     });
-    
+
     return { success: true, status: response.status };
   } catch (error) {
     console.error('❌ Connection test failed:', {
       url: `${BASE_URL}/recruiter/login`,
       error: error.message
     });
-    
+
     return { success: false, error: error.message };
   }
 };

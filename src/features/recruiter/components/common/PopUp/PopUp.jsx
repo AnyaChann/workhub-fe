@@ -1,3 +1,4 @@
+import ReactDOM from 'react-dom';
 import React from 'react';
 import './PopUp.css';
 
@@ -6,12 +7,12 @@ const PopUp = ({
     onClose,
     title,
     children,
-    type = 'default', // 'default', 'danger', 'success', 'warning'
+    type = 'default',
     showCloseButton = true,
     closeOnOverlayClick = true,
     actions = null,
     icon = null,
-    size = 'medium' // 'small', 'medium', 'large'
+    size = 'medium'
 }) => {
     React.useEffect(() => {
         if (isOpen) {
@@ -39,17 +40,12 @@ const PopUp = ({
         }
     };
 
-    return (
+    const modalContent = (
         <div className="popup-overlay" onClick={handleOverlayClick}>
             <div className={`popup-modal ${type} ${size}`}>
-                {/* Header */}
                 <div className="popup-header">
                     <div className="header-content">
-                        {icon && (
-                            <div className="header-icon">
-                                {icon}
-                            </div>
-                        )}
+                        {icon && <div className="header-icon">{icon}</div>}
                         <h3 className="popup-title">{title}</h3>
                     </div>
                     {showCloseButton && (
@@ -61,21 +57,13 @@ const PopUp = ({
                         </button>
                     )}
                 </div>
-
-                {/* Content */}
-                <div className="popup-content">
-                    {children}
-                </div>
-
-                {/* Actions */}
-                {actions && (
-                    <div className="popup-actions">
-                        {actions}
-                    </div>
-                )}
+                <div className="popup-content">{children}</div>
+                {actions && <div className="popup-actions">{actions}</div>}
             </div>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default PopUp;

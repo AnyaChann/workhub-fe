@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { jobService } from '../../../services/jobService';
 import JobForm from '../../forms/JobForm/JobForm';
+import { prepareJobDataForAPI } from '../../../utils/jobDataUtils';
 import './EditJobModal.css';
+import ReactDOM from 'react-dom';
 
 const EditJobModal = ({ isOpen, onClose, job, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -14,36 +16,31 @@ const EditJobModal = ({ isOpen, onClose, job, onSuccess }) => {
     setSuccessMessage('');
 
     try {
-      console.log('📤 EditJobModal: Submitting job update:', formData);
+      console.log('📤 EditJobModal: Raw form data received:', formData);
+      console.log('📤 Original job data:', job);
       
-      // Prepare data for API
-      const jobData = {
-        title: formData.title,
-        description: formData.description,
-        location: formData.location,
-        salaryRange: formData.salaryRange,
-        experience: formData.experience,
-        deadline: formData.deadline,
-        
-        // Send string values for API compatibility
-        category: formData.category,
-        type: formData.type,
-        position: formData.position,
-        skills: formData.skillNames || formData.skills?.map(s => s.name) || []
-      };
+      // Pass original job data to preserve backend structure
+      const jobData = prepareJobDataForAPI(formData, job);
       
+      console.log('📤 Prepared job data:', jobData);
+
       await jobService.editJob(job.id, jobData);
-      
+
       setSuccessMessage('Job updated successfully!');
-      
+
       setTimeout(() => {
         if (onSuccess) {
           onSuccess(job.id);
         }
       }, 1500);
-      
+
     } catch (error) {
       console.error('❌ EditJobModal: Failed to update job:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       setError(error.message || 'Failed to update job. Please try again.');
     } finally {
       setLoading(false);
@@ -57,15 +54,15 @@ const EditJobModal = ({ isOpen, onClose, job, onSuccess }) => {
   };
 
   if (!isOpen) return null;
-
-  return (
+  
+  return ReactDOM.createPortal(
     <div className="edit-job-modal-overlay">
       <div className="modal-container edit-job-modal">
         <div className="modal-header">
           <h2>Edit Job</h2>
-          <button 
-            className="close-button" 
-            onClick={handleCancel} 
+          <button
+            className="close-button"
+            onClick={handleCancel}
             disabled={loading}
           >
             ×
@@ -97,7 +94,8 @@ const EditJobModal = ({ isOpen, onClose, job, onSuccess }) => {
           showPostTypes={false}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

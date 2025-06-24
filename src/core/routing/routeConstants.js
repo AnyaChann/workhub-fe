@@ -75,7 +75,7 @@ const ROUTES = {
   UNAUTHORIZED: '/unauthorized',
   FORBIDDEN: '/forbidden',
   NOT_FOUND: '/404',
-  SERVER_ERROR: '/500'
+  // SERVER_ERROR: '/500'
 };
 
 // ✅ Enhanced helper functions

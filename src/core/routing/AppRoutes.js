@@ -34,7 +34,7 @@ const AdminDashboardLayout = React.lazy(() => import('../../features/dashboard/l
 const NotFound = React.lazy(() => import('../../features/common/components/NotFound/NotFound'));
 const Unauthorized = React.lazy(() => import('../../features/common/components/Unauthorized/Unauthorized'));
 const Forbidden = React.lazy(() => import('../../features/common/components/Forbidden/Forbidden'));
-const ServerError = React.lazy(() => import('../../features/common/components/ServerError/ServerError'));
+// const ServerError = React.lazy(() => import('../../features/common/components/ServerError/ServerError'));
 
 // ✅ Temp Dashboard for development
 const TempDashboard = React.lazy(() => import('../../shared/components/TempDashboard/TempDashboard'));
@@ -123,13 +123,13 @@ const AppRoutes = () => {
           </SuspenseWrapper>
         }
       />
-      <Route 
-        path="/reset-password" 
+      <Route
+        path="/reset-password"
         element={
           <SuspenseWrapper>
             <ResetPassword />
           </SuspenseWrapper>
-        } 
+        }
       />
 
       {/* ✅ Account status routes */}
@@ -287,14 +287,14 @@ const AppRoutes = () => {
           </SuspenseWrapper>
         }
       />
-      <Route
+      {/* <Route
         path={ROUTES.SERVER_ERROR}
         element={
           <SuspenseWrapper>
             <ServerError />
           </SuspenseWrapper>
         }
-      />
+      /> */}
 
       {/* ✅ 404 route - Must be last */}
       <Route
