@@ -2,95 +2,43 @@ import api from '../../../shared/utils/helpers/api';
 import { servicePackageService } from './servicePackageService';
 
 export const packageService = {
-  // ✅ Get user's packages by userId (updated to use correct endpoint and response format)
+  // ✅ Get user's packages - sử dụng servicePackageService
   getUserPackages: async (userId = null) => {
     try {
-      console.log('📦 Fetching user packages for userId:', userId);
-      
-      if (!userId) {
-        throw new Error('User ID is required');
-      }
-      
-      const endpoint = `/user-packages/user/${userId}`;
-      console.log('📦 Fetching from endpoint:', endpoint);
-      
-      const response = await api.get(endpoint);
-      console.log('📦 Raw user packages response:', response);
-      
-      // ✅ API returns array directly according to documentation
-      let packages = [];
-      if (Array.isArray(response)) {
-        packages = response;
-      } else if (response && Array.isArray(response.data)) {
-        packages = response.data;
-      } else if (response?.data) {
-        // Single package wrapped in data
-        packages = [response.data];
-      } else if (response) {
-        // Single package response
-        packages = [response];
-      }
-      
-      console.log('📦 Processed packages:', packages);
-      
-      // ✅ Validate package structure
-      const validPackages = packages.filter(pkg => {
-        const isValid = pkg && pkg.id && pkg.servicePackage;
-        if (!isValid) {
-          console.warn('⚠️ Invalid package structure:', pkg);
-        }
-        return isValid;
-      });
-      
-      console.log('📦 Valid packages:', validPackages);
-      return validPackages;
-      
+      console.log('📦 Getting user packages via servicePackageService...');
+      return await servicePackageService.getUserPackages(userId);
     } catch (error) {
-      console.error('❌ Error fetching user packages:', error);
-      
-      if (error.response?.status === 404) {
-        console.log('📦 No packages found for user');
-        return [];
-      }
-      
-      if (error.response?.status === 401) {
-        throw new Error('Authentication required. Please log in again.');
-      }
-      
-      if (error.response?.status === 403) {
-        throw new Error('Access denied. You do not have permission to view packages.');
-      }
-      
+      console.error('❌ Error in packageService.getUserPackages:', error);
       throw error;
     }
   },
 
-  // ✅ Get user's active package (updated with better logic)
+  // ✅ Get user's active package with enhanced logic
   getUserActivePackage: async (userId = null) => {
     try {
-      console.log('📦 Fetching user active package for userId:', userId);
+      console.log('📦 Finding user active package...');
       
       if (!userId) {
         throw new Error('User ID is required');
       }
       
-      const packages = await this.getUserPackages(userId);
+      const packages = await servicePackageService.getUserPackages(userId);
       
       if (!packages || packages.length === 0) {
-        console.log('� No packages found for user');
+        console.log('📦 No packages found for user');
         return null;
       }
       
       // ✅ Find active package that hasn't expired
       const now = new Date();
-      console.log('� Current time:', now.toISOString());
+      console.log('📅 Current time:', now.toISOString());
       
       const activePackages = packages.filter(pkg => {
         const isActive = pkg.status === 'active';
         const expirationDate = new Date(pkg.expirationDate);
         const notExpired = expirationDate > now;
         
-        console.log('� Checking package:', {
+        console.log('📦 Checking package:', {
           id: pkg.id,
           name: pkg.servicePackage?.name,
           status: pkg.status,
@@ -125,7 +73,7 @@ export const packageService = {
       return selectedPackage;
       
     } catch (error) {
-      console.error('❌ Error fetching user active package:', error);
+      console.error('❌ Error getting user active package:', error);
       
       if (error.response?.status === 404) {
         return null;
@@ -135,22 +83,18 @@ export const packageService = {
     }
   },
 
-  // ✅ Get specific user package by ID (unchanged)
+  // ✅ Get specific user package by ID
   getUserPackageById: async (packageId) => {
     try {
-      console.log('� Fetching user package by ID:', packageId);
-      
-      const response = await api.get(`/user-packages/${packageId}`);
-      console.log('� Package details:', response);
-      
-      return response?.data || response;
+      console.log('📦 Getting user package by ID via servicePackageService...');
+      return await servicePackageService.getUserPackageById(packageId);
     } catch (error) {
-      console.error('❌ Error fetching user package by ID:', error);
+      console.error('❌ Error in packageService.getUserPackageById:', error);
       throw error;
     }
   },
 
-  // ✅ Calculate remaining posts from package features with better logic
+  // ✅ Calculate remaining posts from package features
   calculateRemainingPosts: async (userPackage, currentJobCount) => {
     try {
       console.log('📊 Calculating remaining posts:', { 
@@ -270,45 +214,35 @@ export const packageService = {
   // ✅ Get available service packages for purchase
   getAvailablePackages: async () => {
     try {
-      console.log('📦 Fetching available service packages...');
+      console.log('📦 Getting available packages via servicePackageService...');
+      const packages = await servicePackageService.getAllPackages();
       
-      const response = await api.get('/service-packages');
-      console.log('📦 Available packages response:', response);
-      
-      let packages = [];
-      if (Array.isArray(response)) {
-        packages = response;
-      } else if (response && Array.isArray(response.data)) {
-        packages = response.data;
-      }
-      
-      // Filter active packages
+      // ✅ Filter active packages only
       const activePackages = packages.filter(pkg => pkg.status === 'active');
       console.log('📦 Active available packages:', activePackages);
       
       return activePackages;
     } catch (error) {
-      console.error('❌ Error fetching available packages:', error);
+      console.error('❌ Error getting available packages:', error);
       throw error;
     }
   },
 
   // ✅ Purchase a package
-  // ✅ Mua gói dịch vụ sử dụng API test
   purchasePackage: async (userId, packageId) => {
     try {
       console.log('💰 Purchasing package for user:', userId, 'Package:', packageId);
       
-      // Lấy thông tin gói để biết giá
+      // ✅ Lấy thông tin gói để biết giá
       const packageInfo = await servicePackageService.getPackageById(packageId);
       if (!packageInfo) {
         throw new Error('Package not found');
       }
       
-      const price = packageInfo.price || 499000; // Fallback price nếu API không trả về
+      const price = packageInfo.price || 499000; // Fallback price
       const description = `Purchase: ${packageInfo.name || 'Package'}`;
       
-      // Gọi API test payment
+      // ✅ Gọi API test payment (sẽ được thay thế bằng endpoint thực tế)
       const response = await servicePackageService.purchasePackageTest(
         packageId, 
         price, 
@@ -324,7 +258,6 @@ export const packageService = {
     } catch (error) {
       console.error('❌ Error purchasing package:', error);
       
-      // Trả về object với các thông tin chi tiết về lỗi
       return {
         success: false,
         error: error.message || 'Failed to purchase package',
@@ -334,12 +267,12 @@ export const packageService = {
     }
   },
 
-  // ✅ Gia hạn gói dịch vụ sử dụng API test
+  // ✅ Renew a package
   renewPackage: async (userId, userPackageId) => {
     try {
       console.log('🔄 Renewing package for user:', userId, 'UserPackage:', userPackageId);
       
-      // Lấy thông tin gói người dùng đang sử dụng
+      // ✅ Lấy thông tin gói người dùng đang sử dụng
       const userPackageInfo = await servicePackageService.getUserPackageById(userPackageId);
       if (!userPackageInfo) {
         throw new Error('User package not found');
@@ -354,7 +287,7 @@ export const packageService = {
       const packageName = userPackageInfo.servicePackage?.name || 'Package';
       const description = `Renewal: ${packageName}`;
       
-      // Gọi API test renewal
+      // ✅ Gọi API test renewal (sẽ được thay thế bằng endpoint thực tế)
       const response = await servicePackageService.renewPackageTest(
         packageId,
         price,
@@ -370,7 +303,6 @@ export const packageService = {
     } catch (error) {
       console.error('❌ Error renewing package:', error);
       
-      // Trả về object với các thông tin chi tiết về lỗi
       return {
         success: false,
         error: error.message || 'Failed to renew package',
@@ -378,7 +310,7 @@ export const packageService = {
         statusCode: error.response?.status || 500
       };
     }
-    },
+  },
 
   // ✅ Enhanced package validation
   validatePackageForJobPosting: (userPackage, postType = 'standard') => {
@@ -428,21 +360,21 @@ export const packageService = {
   }
 };
 
-// ✅ Enhanced job count functionality
+// ✅ Job count functionality
 export const jobServiceExtension = {
   // Get current user's job count by type
   getUserJobCount: async () => {
     try {
       console.log('📊 Fetching user job count...');
       
-      // Try dedicated count endpoint first
+      // ✅ Try dedicated count endpoint first
       try {
         const response = await api.get('/jobs/recruiter/count');
         console.log('📊 Job count from dedicated endpoint:', response);
         
         const count = response?.data || response || {};
         
-        // Ensure all required fields exist
+        // ✅ Ensure all required fields exist
         return {
           total: count.total || 0,
           standard: count.standard || 0,
@@ -453,7 +385,7 @@ export const jobServiceExtension = {
       } catch (countError) {
         console.log('📊 Dedicated count endpoint failed, falling back to jobs list...');
         
-        // Fallback: get all jobs and count them
+        // ✅ Fallback: get all jobs and count them
         const jobs = await api.get('/jobs/recruiter');
         console.log('📊 Jobs for counting:', jobs);
         

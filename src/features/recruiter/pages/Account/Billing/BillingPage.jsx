@@ -63,133 +63,16 @@ const BillingPage = () => {
       } else if (availablePackages?.data && Array.isArray(availablePackages.data)) {
         setPackages(availablePackages.data);
       } else if (!Array.isArray(availablePackages) && availablePackages) {
-        // Đôi khi API trả về object thay vì array
+        // API returns single object instead of array
         setPackages([availablePackages]);
       } else {
-        console.warn('⚠️ No packages found or invalid format, using fallback');
-        setPackages([
-          {
-            id: 1,
-            name: "Gói Tiêu chuẩn",
-            price: 499000,
-            features: [
-              {
-                id: 1,
-                featureName: "Đăng tin tiêu chuẩn",
-                description: "Đăng tin tuyển dụng tiêu chuẩn",
-                postAt: "standard",
-                jobPostLimit: 5
-              }
-            ],
-            duration: 30,
-            description: "Gói bao gồm 5 tin tuyển dụng tiêu chuẩn.",
-            status: "active"
-          },
-          {
-            id: 2,
-            name: "Gói Chuyên nghiệp",
-            price: 999000,
-            features: [
-              {
-                id: 2,
-                featureName: "Đăng tin tiêu chuẩn",
-                description: "Đăng tin tuyển dụng tiêu chuẩn",
-                postAt: "standard",
-                jobPostLimit: 10
-              },
-              {
-                id: 3,
-                featureName: "Đăng tin khẩn",
-                description: "Đăng tin tuyển dụng khẩn",
-                postAt: "urgent",
-                jobPostLimit: 3
-              }
-            ],
-            duration: 30,
-            description: "Gói bao gồm 10 tin tiêu chuẩn và 3 tin khẩn.",
-            status: "active"
-          },
-          {
-            id: 3,
-            name: "Gói Doanh nghiệp",
-            price: 1999000,
-            features: [
-              {
-                id: 4,
-                featureName: "Đăng tin tiêu chuẩn",
-                description: "Đăng tin tuyển dụng tiêu chuẩn",
-                postAt: "standard",
-                jobPostLimit: 20
-              },
-              {
-                id: 5,
-                featureName: "Đăng tin khẩn",
-                description: "Đăng tin tuyển dụng khẩn",
-                postAt: "urgent",
-                jobPostLimit: 10
-              },
-              {
-                id: 6,
-                featureName: "Đăng tin premium",
-                description: "Đăng tin tuyển dụng premium",
-                postAt: "premium",
-                jobPostLimit: 5
-              }
-            ],
-            duration: 30,
-            description: "Gói cao cấp cho doanh nghiệp lớn.",
-            status: "active"
-          }
-        ]);
+        console.warn('⚠️ No packages found or invalid format');
+        setPackages([]);
       }
     } catch (err) {
       console.error('❌ Error loading packages:', err);
       setPackagesError(err.message || 'Failed to load available packages');
-      
-      // Set fallback data
-      setPackages([
-        {
-          id: 1,
-          name: "Gói Tiêu chuẩn",
-          price: 499000,
-          features: [
-            {
-              id: 1,
-              featureName: "Đăng tin tiêu chuẩn",
-              description: "Đăng tin tuyển dụng tiêu chuẩn",
-              postAt: "standard",
-              jobPostLimit: 5
-            }
-          ],
-          duration: 30,
-          description: "Gói bao gồm 5 tin tuyển dụng tiêu chuẩn.",
-          status: "active"
-        },
-        {
-          id: 2,
-          name: "Gói Chuyên nghiệp",
-          price: 999000,
-          features: [
-            {
-              id: 2,
-              featureName: "Đăng tin tiêu chuẩn",
-              description: "Đăng tin tuyển dụng tiêu chuẩn",
-              postAt: "standard",
-              jobPostLimit: 10
-            },
-            {
-              id: 3,
-              featureName: "Đăng tin khẩn",
-              description: "Đăng tin tuyển dụng khẩn",
-              postAt: "urgent",
-              jobPostLimit: 3
-            }
-          ],
-          duration: 30,
-          description: "Gói bao gồm 10 tin tiêu chuẩn và 3 tin khẩn.",
-          status: "active"
-        }
-      ]);
+      setPackages([]);
     } finally {
       setPackagesLoading(false);
     }
@@ -669,7 +552,7 @@ const BillingPage = () => {
 
         {!packagesLoading || packages.length > 0 ? (
           <div className="packages-grid">
-            {packages.map((pkg) => (
+            {packages.length > 0 ? packages.map((pkg) => (
               <div key={pkg.id} className="package-card">
                 <div className="package-header">
                   <h3 className="package-name">{pkg.name}</h3>
@@ -683,7 +566,7 @@ const BillingPage = () => {
                   <p className="package-description">{pkg.description}</p>
                   
                   <div className="package-features">
-                    {pkg.features && pkg.features.map((feature) => (
+                    {pkg.features && pkg.features.length > 0 ? pkg.features.map((feature) => (
                       <div key={feature.id} className="feature-item">
                         <span className="feature-icon">
                           {feature.postAt === 'standard' ? '📝' : 
@@ -693,27 +576,11 @@ const BillingPage = () => {
                         <span>{feature.featureName}</span>
                         <span className="feature-limit">{feature.jobPostLimit} posts</span>
                       </div>
-                    ))}
-                    
-                    {(!pkg.features || pkg.features.length === 0) && (
-                      <>
-                        <div className="feature-item">
-                          <span className="feature-icon">📋</span>
-                          <span>
-                            {getTotalJobPostLimit(pkg) || pkg.jobPostings || 5} job postings
-                          </span>
-                        </div>
-                        
-                        <div className="feature-item">
-                          <span className="feature-icon">📊</span>
-                          <span>Application analytics</span>
-                        </div>
-                        
-                        <div className="feature-item">
-                          <span className="feature-icon">💬</span>
-                          <span>Email support</span>
-                        </div>
-                      </>
+                    )) : (
+                      <div className="no-features-placeholder">
+                        <span className="placeholder-icon">📋</span>
+                        <span>Package features will be displayed here</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -730,7 +597,18 @@ const BillingPage = () => {
                   </button>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="no-packages-available">
+                <div className="empty-state">
+                  <span className="empty-icon">📦</span>
+                  <h3>No packages available</h3>
+                  <p>No service packages are currently available for purchase</p>
+                  <button onClick={loadPackages} className="retry-btn">
+                    🔄 Refresh
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : packagesLoading && !isFullPageLoading ? (
           <div className="section-placeholder">
@@ -797,6 +675,9 @@ const BillingPage = () => {
               <span className="empty-icon">🔍</span>
               <h3>No service features available</h3>
               <p>Service features will appear here when available</p>
+              <button onClick={loadServiceFeatures} className="retry-btn">
+                🔄 Refresh
+              </button>
             </div>
           </div>
         ) : featuresLoading ? (
@@ -812,31 +693,17 @@ const BillingPage = () => {
         <h2 className="section-title">Billing History</h2>
         <div className="billing-history">
           {isOnline ? (
-            <>
-              <div className="history-item">
-                <div className="history-date">{new Date().toLocaleDateString('vi-VN')}</div>
-                <div className="history-description">Test Payment - Demo</div>
-                <div className="history-amount">{formatPrice(499000)}</div>
-                <div className="history-status success">Paid</div>
-              </div>
-              
-              <div className="history-item">
-                <div className="history-date">{new Date(Date.now() - 30*24*60*60*1000).toLocaleDateString('vi-VN')}</div>
-                <div className="history-description">Test Renewal - Demo</div>
-                <div className="history-amount">{formatPrice(499000)}</div>
-                <div className="history-status success">Paid</div>
-              </div>
-            </>
+            <div className="coming-soon">
+              <span className="coming-soon-icon">💳</span>
+              <h3>Payment History</h3>
+              <p>Full payment history integration coming soon</p>
+            </div>
           ) : (
             <div className="offline-message">
               <span className="offline-icon">📶</span>
               <p>Payment history is not available while offline</p>
             </div>
           )}
-          
-          <div className="coming-soon">
-            <p>💳 Full payment history integration coming soon</p>
-          </div>
         </div>
       </div>
 
