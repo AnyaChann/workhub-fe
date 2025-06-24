@@ -16,6 +16,7 @@ const UserProfilePage = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -23,6 +24,7 @@ const UserProfilePage = () => {
   const [profileData, setProfileData] = useState({
     id: '',
     avatar: '',
+    avatarUrl: '',
     created_at: '',
     email: '',
     fullname: '',
@@ -36,6 +38,58 @@ const UserProfilePage = () => {
     loadUserProfile();
   }, [user]);
 
+  // ✅ Cleanup blob URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (profileData.avatarUrl && profileData.avatarUrl.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(profileData.avatarUrl);
+        } catch (error) {
+          console.warn('⚠️ Failed to cleanup avatar blob URL on unmount:', error);
+        }
+      }
+    };
+  }, [profileData.avatarUrl]);
+
+  // ✅ Load fresh avatar from API
+  const loadFreshAvatar = async () => {
+    setAvatarLoading(true);
+    try {
+      console.log('🔄 Loading fresh avatar from API...');
+      const avatarUrl = await userService.getUserAvatar();
+      
+      if (avatarUrl) {
+        console.log('✅ Fresh avatar loaded:', avatarUrl);
+        setProfileData(prev => ({
+          ...prev,
+          avatarUrl: avatarUrl
+        }));
+      } else {
+        console.log('ℹ️ No avatar found in API');
+        // Keep existing avatar or use fallback
+        const cachedAvatar = localStorage.getItem('user_avatar');
+        if (!cachedAvatar || cachedAvatar.startsWith('blob:')) {
+          // Remove invalid blob URL
+          localStorage.removeItem('user_avatar');
+          setProfileData(prev => ({
+            ...prev,
+            avatarUrl: ''
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to load fresh avatar:', error);
+      // Remove invalid cached avatar
+      localStorage.removeItem('user_avatar');
+      setProfileData(prev => ({
+        ...prev,
+        avatarUrl: ''
+      }));
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
   const loadUserProfile = async () => {
     if (!user?.id) {
       console.log('No user found, redirecting to login');
@@ -46,39 +100,52 @@ const UserProfilePage = () => {
     setError(null);
 
     try {
-      // Khởi tạo dữ liệu từ AuthContext
-      setProfileData({
+      // ✅ Initialize data from AuthContext first
+      const authProfileData = {
         id: user.id,
-        avatar: getUserAvatar() || '',
+        avatar: '',
+        avatarUrl: '',
         created_at: user.created_at || user.createdAt || new Date().toISOString(),
         email: email || '',
         fullname: fullname || '',
         phone: phone || '',
         role: user.role || '',
         status: user.status || 'active'
-      });
+      };
 
-      // Thêm dữ liệu từ API
+      setProfileData(authProfileData);
+
+      // ✅ Load fresh avatar from API immediately after setting profile data
+      await loadFreshAvatar();
+
+      // ✅ Try to load additional data from API (optional enhancement)
       try {
-        console.log('Fetching additional profile data from API...');
-        const profileResponse = await userService.getCurrentUserProfile();
+        console.log('🔄 Attempting to load additional profile data from API...');
+        const apiProfileData = await userService.getCurrentUserProfile();
 
-        if (profileResponse) {
-          console.log('Additional profile data loaded:', profileResponse);
+        if (apiProfileData && Object.keys(apiProfileData).length > 0) {
+          console.log('✅ Additional profile data loaded from API:', apiProfileData);
 
+          // Merge API data with auth data (API data takes precedence)
           setProfileData(prev => ({
             ...prev,
-            ...profileResponse,
-            // Đảm bảo avatar được lưu đúng cách
-            avatar: profileResponse.avatar || prev.avatar
+            ...apiProfileData,
+            // Keep auth data as fallback for critical fields
+            id: prev.id,
+            role: prev.role,
+            // Use fresh avatar if we have it, otherwise use API avatar
+            avatarUrl: prev.avatarUrl || apiProfileData.avatarUrl || ''
           }));
+        } else {
+          console.log('ℹ️ No additional data from API, using auth data');
         }
       } catch (apiError) {
-        console.log('API profile load failed, using auth data:', apiError);
+        console.log('ℹ️ API profile load failed, using auth data only:', apiError.message);
+        // This is OK - we have auth data as fallback
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
-      setError('Failed to load profile data. Please refresh the page.');
+      console.error('❌ Error in profile loading process:', error);
+      setError('Failed to load some profile data. Using available information.');
     } finally {
       setProfileLoading(false);
     }
@@ -96,73 +163,110 @@ const UserProfilePage = () => {
     setSuccess(null);
   };
 
-  // Cập nhật handleSaveProfile để sử dụng đúng cấu trúc dữ liệu
+  // ✅ Enhanced handleSaveProfile with better result handling
   const handleSaveProfile = async (newData) => {
+    console.log('💾 UserProfilePage: Starting profile save process...');
+    console.log('📋 New data:', {
+      fullname: newData.fullname,
+      email: newData.email,
+      phone: newData.phone,
+      hasAvatarFile: !!newData.avatarFile,
+      avatarFileName: newData.avatarFile?.name
+    });
+
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      // Tạo payload cho API theo đúng cấu trúc
-      const apiProfileData = {
-        fullname: newData.fullname,
-        email: newData.email,
-        phone: newData.phone
-      };
+      let result;
 
-      console.log('Updating profile with data:', apiProfileData);
-
-      // Update profile via API
-      const updatedProfile = await userService.updateUserProfile(apiProfileData);
-
-      // Update local state
-      setProfileData(prev => ({
-        ...prev,
-        ...updatedProfile
-      }));
-
-      // Xử lý avatar riêng nếu có
+      // ✅ Use the new unified method that handles both profile and avatar
       if (newData.avatarFile) {
-        try {
-          console.log('Uploading new avatar:', newData.avatarFile.name);
-          const avatarResponse = await userService.uploadAvatar(newData.avatarFile);
+        console.log('🖼️ Updating profile with avatar...');
+        // Update profile with avatar in single API call
+        result = await userService.updateProfileWithAvatar({
+          fullname: newData.fullname,
+          email: newData.email,
+          phone: newData.phone
+        }, newData.avatarFile);
 
-          if (avatarResponse?.avatarUrl) {
-            console.log('Avatar uploaded successfully:', avatarResponse.avatarUrl);
-            setProfileData(prev => ({
-              ...prev,
-              avatar: avatarResponse.avatarUrl
-            }));
-          }
-        } catch (avatarError) {
-          console.error('Avatar upload failed:', avatarError);
-          setError('Profile updated but avatar upload failed. Please try again later.');
-        }
+        console.log('✅ Profile and avatar updated successfully:', result);
+        
+        // ✅ Safely update profile data - ensure result is an object
+        setProfileData(prev => ({
+          ...prev,
+          fullname: newData.fullname,
+          email: newData.email,
+          phone: newData.phone,
+          // Handle both object and string responses
+          avatar: (result && typeof result === 'object') ? result.avatar : null,
+          avatarUrl: (result && typeof result === 'object') ? (result.avatarUrl || prev.avatarUrl) : prev.avatarUrl
+        }));
+      } else {
+        console.log('📝 Updating profile only (no avatar)...');
+        // Update profile only (no avatar change)
+        result = await userService.updateUserProfile({
+          fullname: newData.fullname,
+          email: newData.email,
+          phone: newData.phone
+        });
+
+        console.log('✅ Profile updated successfully:', result);
+        
+        // ✅ Safely update profile data
+        setProfileData(prev => ({
+          ...prev,
+          fullname: newData.fullname,
+          email: newData.email,
+          phone: newData.phone
+        }));
       }
 
-      setSuccess('Profile updated successfully!');
+      // ✅ Extract success message
+      const successMessage = (result && typeof result === 'object' && result.message) 
+        ? result.message 
+        : 'Profile updated successfully!';
+      
+      setSuccess(successMessage);
       setShowProfileModal(false);
 
       // Refresh AuthContext data
       if (typeof refreshUserData === 'function') {
         try {
+          console.log('🔄 Refreshing AuthContext data...');
           await refreshUserData();
+          console.log('✅ AuthContext data refreshed');
         } catch (refreshError) {
-          console.error('Failed to refresh user data:', refreshError);
+          console.error('⚠️ Failed to refresh user data:', refreshError);
+          // Don't throw error - profile update was successful
         }
       }
 
-      // Auto-clear success message
       setTimeout(() => setSuccess(null), 3000);
 
     } catch (error) {
-      console.error('Save profile error:', error);
-      setError(error.response?.data?.message || error.message || 'Failed to update profile');
+      console.error('❌ Save profile error:', error);
+
+      // ✅ Enhanced error handling
+      let errorMessage = 'Failed to update profile';
+
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status) {
+        errorMessage = `Server error (${error.response.status}). Please try again.`;
+      }
+
+      setError(errorMessage);
+
+      // Don't close modal on error - let user try again
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handlePasswordChange = async (passwordData) => {
     setLoading(true);
     setError(null);
@@ -284,21 +388,31 @@ const UserProfilePage = () => {
                   <div className="picture-container">
                     <label className="picture-label">DISPLAY PICTURE</label>
                     <div className="profile-picture">
-                      {profileData.avatar ? (
+                      {/* ✅ Show loading spinner while avatar is loading */}
+                      {avatarLoading ? (
+                        <div className="avatar-loading">
+                          <InlineLoadingSpinner size="medium" />
+                          <span>Loading avatar...</span>
+                        </div>
+                      ) : profileData.avatarUrl ? (
                         <img
-                          src={profileData.avatar}
+                          src={profileData.avatarUrl}
                           alt="Profile"
                           className="profile-image"
                           onError={(e) => {
+                            console.error('❌ Avatar image load error, falling back to default');
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'flex';
+                          }}
+                          onLoad={() => {
+                            console.log('✅ Avatar image loaded successfully');
                           }}
                         />
                       ) : null}
                       <div
                         className="default-avatar"
                         style={{
-                          display: profileData.avatar ? 'none' : 'flex'
+                          display: (!avatarLoading && profileData.avatarUrl) ? 'none' : 'flex'
                         }}
                       >
                         <span className="avatar-icon">👤</span>
@@ -306,6 +420,7 @@ const UserProfilePage = () => {
                     </div>
                     <div className="picture-help">
                       Click 'Edit' to change your profile picture
+                      {avatarLoading && <span className="loading-text"> (Loading...)</span>}
                     </div>
                   </div>
                 </div>

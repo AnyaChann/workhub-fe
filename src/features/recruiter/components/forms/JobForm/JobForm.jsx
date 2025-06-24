@@ -3,7 +3,6 @@ import { jobCategoryService } from '../../../services/jobCategoryService';
 import { jobTypeService } from '../../../services/jobTypeService';
 import { jobPositionService } from '../../../services/jobPositionService';
 import { skillService } from '../../../services/skillService';
-import { packageService } from '../../../services/packageService';
 import './JobForm.css';
 
 const JobForm = ({
@@ -14,14 +13,12 @@ const JobForm = ({
   isSubmitting = false,
   submitError = '',
   mode = 'create', // 'create' or 'edit'
-  showPackageInfo = true,
-  showPostTypes = true,
+  showPackageInfo = false, // Disabled package system
+  showPostTypes = false,   // Disabled post types
   user = null,
-  userPackage = null,
-  remainingPosts = 0,
-  availablePostTypes = []
+  disabled = false
 }) => {
-  // ✅ Form state
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,7 +26,6 @@ const JobForm = ({
     experience: '',
     location: '',
     deadline: '',
-    postAt: '',
     categoryId: '',
     typeId: '',
     positionId: '',
@@ -78,7 +74,6 @@ const JobForm = ({
         experience: initialData.experience || '',
         location: initialData.location || '',
         deadline: formattedDeadline,
-        postAt: initialData.postAt || 'STANDARD',
         categoryId: initialData.categoryId || '',
         typeId: initialData.typeId || '',
         positionId: initialData.positionId || '',
@@ -169,28 +164,16 @@ const JobForm = ({
       setOptionsLoading(prev => ({ ...prev, categories: true }));
       try {
         const categoriesData = await jobCategoryService.getAllJobCategories();
-        let processedCategories = Array.isArray(categoriesData) ? categoriesData : categoriesData?.data || [];
-        
+        const processedCategories = Array.isArray(categoriesData) ? categoriesData : categoriesData?.data || [];
+
         setFormOptions(prev => ({
           ...prev,
-          categories: processedCategories.length > 0 ? processedCategories : [
-            { id: 1, name: 'Công nghệ thông tin', description: 'Ngành liên quan đến lập trình...' },
-            { id: 2, name: 'Marketing', description: 'Ngành tiếp thị và quảng cáo...' },
-            { id: 3, name: 'Kinh doanh', description: 'Ngành kinh doanh và bán hàng...' },
-            { id: 4, name: 'Thiết kế', description: 'Ngành thiết kế đồ họa, UI/UX...' }
-          ]
+          categories: processedCategories
         }));
+        console.log('✅ Categories loaded:', processedCategories.length);
       } catch (error) {
         console.error('❌ Error loading categories:', error);
-        setFormOptions(prev => ({
-          ...prev,
-          categories: [
-            { id: 1, name: 'Công nghệ thông tin' },
-            { id: 2, name: 'Marketing' },
-            { id: 3, name: 'Kinh doanh' },
-            { id: 4, name: 'Thiết kế' }
-          ]
-        }));
+        setFormOptions(prev => ({ ...prev, categories: [] }));
       } finally {
         setOptionsLoading(prev => ({ ...prev, categories: false }));
       }
@@ -199,28 +182,16 @@ const JobForm = ({
       setOptionsLoading(prev => ({ ...prev, types: true }));
       try {
         const typesData = await jobTypeService.getAllJobTypes();
-        let processedTypes = Array.isArray(typesData) ? typesData : typesData?.data || [];
-        
+        const processedTypes = Array.isArray(typesData) ? typesData : typesData?.data || [];
+
         setFormOptions(prev => ({
           ...prev,
-          types: processedTypes.length > 0 ? processedTypes : [
-            { id: 1, name: 'Full-time' },
-            { id: 2, name: 'Part-time' },
-            { id: 3, name: 'Contract' },
-            { id: 4, name: 'Internship' }
-          ]
+          types: processedTypes
         }));
+        console.log('✅ Job types loaded:', processedTypes.length);
       } catch (error) {
         console.error('❌ Error loading job types:', error);
-        setFormOptions(prev => ({
-          ...prev,
-          types: [
-            { id: 1, name: 'Full-time' },
-            { id: 2, name: 'Part-time' },
-            { id: 3, name: 'Contract' },
-            { id: 4, name: 'Internship' }
-          ]
-        }));
+        setFormOptions(prev => ({ ...prev, types: [] }));
       } finally {
         setOptionsLoading(prev => ({ ...prev, types: false }));
       }
@@ -229,30 +200,16 @@ const JobForm = ({
       setOptionsLoading(prev => ({ ...prev, positions: true }));
       try {
         const positionsData = await jobPositionService.getAllJobPositions();
-        let processedPositions = Array.isArray(positionsData) ? positionsData : positionsData?.data || [];
-        
+        const processedPositions = Array.isArray(positionsData) ? positionsData : positionsData?.data || [];
+
         setFormOptions(prev => ({
           ...prev,
-          positions: processedPositions.length > 0 ? processedPositions : [
-            { id: 1, name: 'Backend Developer' },
-            { id: 2, name: 'Frontend Developer' },
-            { id: 3, name: 'Full Stack Developer' },
-            { id: 4, name: 'UI/UX Designer' },
-            { id: 5, name: 'Product Manager' }
-          ]
+          positions: processedPositions
         }));
+        console.log('✅ Positions loaded:', processedPositions.length);
       } catch (error) {
         console.error('❌ Error loading positions:', error);
-        setFormOptions(prev => ({
-          ...prev,
-          positions: [
-            { id: 1, name: 'Backend Developer' },
-            { id: 2, name: 'Frontend Developer' },
-            { id: 3, name: 'Full Stack Developer' },
-            { id: 4, name: 'UI/UX Designer' },
-            { id: 5, name: 'Product Manager' }
-          ]
-        }));
+        setFormOptions(prev => ({ ...prev, positions: [] }));
       } finally {
         setOptionsLoading(prev => ({ ...prev, positions: false }));
       }
@@ -261,34 +218,16 @@ const JobForm = ({
       setOptionsLoading(prev => ({ ...prev, skills: true }));
       try {
         const skillsData = await skillService.getAllSkills();
+        const processedSkills = Array.isArray(skillsData) ? skillsData : skillsData?.data || [];
+
         setFormOptions(prev => ({
           ...prev,
-          skills: skillsData && skillsData.length > 0 ? skillsData : [
-            { id: 1, name: 'Java', description: 'Lập trình hướng đối tượng với Java.' },
-            { id: 2, name: 'JavaScript', description: 'Ngôn ngữ lập trình web...' },
-            { id: 3, name: 'React', description: 'Thư viện JavaScript cho UI...' },
-            { id: 4, name: 'Node.js', description: 'JavaScript runtime cho backend...' },
-            { id: 5, name: 'Python', description: 'Ngôn ngữ lập trình đa năng...' },
-            { id: 6, name: 'Spring Boot', description: 'Framework Java cho web app...' },
-            { id: 7, name: 'MySQL', description: 'Hệ quản trị cơ sở dữ liệu...' },
-            { id: 8, name: 'Docker', description: 'Containerization platform...' }
-          ]
+          skills: processedSkills
         }));
+        console.log('✅ Skills loaded:', processedSkills.length);
       } catch (error) {
         console.error('❌ Error loading skills:', error);
-        setFormOptions(prev => ({
-          ...prev,
-          skills: [
-            { id: 1, name: 'Java' },
-            { id: 2, name: 'JavaScript' },
-            { id: 3, name: 'React' },
-            { id: 4, name: 'Node.js' },
-            { id: 5, name: 'Python' },
-            { id: 6, name: 'Spring Boot' },
-            { id: 7, name: 'MySQL' },
-            { id: 8, name: 'Docker' }
-          ]
-        }));
+        setFormOptions(prev => ({ ...prev, skills: [] }));
       } finally {
         setOptionsLoading(prev => ({ ...prev, skills: false }));
       }
@@ -303,24 +242,23 @@ const JobForm = ({
     try {
       console.log('🎯 JobForm: Loading positions for category:', categoryId);
       setOptionsLoading(prev => ({ ...prev, positions: true }));
-      
+
       const positionsData = await jobPositionService.getJobPositionsByCategory(categoryId);
-      let processedPositions = Array.isArray(positionsData) ? positionsData : positionsData?.data || [];
-      
-      if (processedPositions.length > 0) {
-        setFormOptions(prev => ({
-          ...prev,
-          positions: processedPositions
-        }));
-        
-        // Reset position selection if current selection is not in new list
-        if (formData.positionId && !processedPositions.some(p => p.id == formData.positionId)) {
-          console.log('🎯 JobForm: Resetting position selection - not in category');
-          setFormData(prev => ({ ...prev, positionId: '' }));
-        }
+      const processedPositions = Array.isArray(positionsData) ? positionsData : positionsData?.data || [];
+
+      setFormOptions(prev => ({
+        ...prev,
+        positions: processedPositions
+      }));
+
+      // Reset position selection if current selection is not in new list
+      if (formData.positionId && !processedPositions.some(p => p.id == formData.positionId)) {
+        console.log('🎯 JobForm: Resetting position selection - not in category');
+        setFormData(prev => ({ ...prev, positionId: '' }));
       }
     } catch (error) {
       console.error('❌ JobForm: Error loading positions by category:', error);
+      setFormOptions(prev => ({ ...prev, positions: [] }));
     } finally {
       setOptionsLoading(prev => ({ ...prev, positions: false }));
     }
@@ -332,7 +270,7 @@ const JobForm = ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({
@@ -346,87 +284,69 @@ const JobForm = ({
     setSelectedSkills(prev => {
       const isSelected = prev.some(s => s.id === skill.id);
       let newSkills;
-      
+
       if (isSelected) {
         newSkills = prev.filter(s => s.id !== skill.id);
       } else {
         newSkills = [...prev, skill];
       }
-      
+
       // Update form data skills array
       setFormData(prevForm => ({
         ...prevForm,
         skills: newSkills.map(s => s.id)
       }));
-      
+
       return newSkills;
     });
   };
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.title.trim()) {
       errors.title = 'Job title is required';
     }
-    
+
     if (!formData.description.trim()) {
       errors.description = 'Job description is required';
     }
-    
+
     if (!formData.location.trim()) {
       errors.location = 'Location is required';
     }
-    
+
     if (!formData.deadline) {
       errors.deadline = 'Deadline is required';
     } else {
       const deadlineDate = new Date(formData.deadline);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (deadlineDate <= today) {
         errors.deadline = 'Deadline must be in the future';
       }
     }
-    
+
     if (!formData.categoryId) {
       errors.categoryId = 'Category is required';
     }
-    
+
     if (!formData.typeId) {
       errors.typeId = 'Job type is required';
     }
-    
+
     if (!formData.positionId) {
       errors.positionId = 'Position is required';
     }
 
-    // Package validation for create mode
-    if (mode === 'create' && showPostTypes) {
-      if (!userPackage) {
-        errors.package = 'No active package found. Please purchase a package to post jobs.';
-      } else if (remainingPosts <= 0) {
-        errors.package = 'You have reached your job posting limit. Please upgrade your package.';
-      } else if (!formData.postAt) {
-        errors.postAt = 'Post type is required';
-      } else {
-        const selectedPostType = availablePostTypes.find(pt => pt.type === formData.postAt);
-        if (!selectedPostType) {
-          errors.postAt = 'Selected post type is not available in your package';
-        } else if (!selectedPostType.isAvailable) {
-          errors.postAt = `You have no remaining ${selectedPostType.name} posts`;
-        }
-      }
-    }
-    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -444,7 +364,7 @@ const JobForm = ({
       position: selectedPosition?.name || '',
       skills: selectedSkills,
       skillNames: selectedSkills.map(skill => skill.name),
-      
+
       // Form metadata
       selectedCategory,
       selectedType,
@@ -458,7 +378,7 @@ const JobForm = ({
 
   const handleSaveAsDraft = (e) => {
     e.preventDefault();
-    
+
     if (onSaveAsDraft) {
       const selectedCategory = formOptions.categories.find(cat => cat.id == formData.categoryId);
       const selectedType = formOptions.types.find(type => type.id == formData.typeId);
@@ -479,41 +399,19 @@ const JobForm = ({
     }
   };
 
-  // Helper functions
-  const getPostTypeName = (postType) => packageService?.getPostTypeName?.(postType) || postType;
-  
-  const getPostTypeStyle = (postType) => {
-    const styles = {
-      'STANDARD': { icon: '📝', color: '#6b7280', bgColor: '#f3f4f6' },
-      'URGENT': { icon: '🚨', color: '#ef4444', bgColor: '#fecaca' },
-      'PROPOSAL': { icon: '💼', color: '#8b5cf6', bgColor: '#ede9fe' }
-    };
-    return styles[postType] || styles.STANDARD;
-  };
-
   // Calculate states
-  const isFormDisabled = isSubmitting;
+  const isFormDisabled = isSubmitting || disabled;
   const isDropdownDisabled = isFormDisabled || optionsLoading.categories || optionsLoading.types;
   const isSkillsDisabled = isFormDisabled || optionsLoading.skills;
   const isPositionDisabled = isFormDisabled || optionsLoading.positions;
 
   return (
     <div className="job-form">
-      {/* Debug info for development */}
-      {/* {process.env.NODE_ENV === 'development' && mode === 'edit' && initialData && (
-        <div className="debug-info">
-          <strong>🔍 Debug Info:</strong><br />
-          <strong>Original:</strong> Cat="{initialData.category}" | Type="{initialData.type}" | Pos="{initialData.position}"<br />
-          <strong>Form IDs:</strong> CatID={formData.categoryId} | TypeID={formData.typeId} | PosID={formData.positionId}<br />
-          <strong>Options:</strong> Categories={formOptions.categories.length} | Types={formOptions.types.length} | Positions={formOptions.positions.length}
-        </div>
-      )} */}
-
       <form onSubmit={handleSubmit} className="job-form-container">
         {/* Basic Information */}
         <div className="form-section">
           <h3 className="section-title">📋 Basic Information</h3>
-          
+
           <div className="form-group">
             <label htmlFor="title" className="form-label">
               Job Title <span className="required">*</span>
@@ -556,7 +454,7 @@ const JobForm = ({
         {/* Job Details */}
         <div className="form-section">
           <h3 className="section-title">💼 Job Details</h3>
-          
+
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="categoryId" className="form-label">
@@ -713,76 +611,6 @@ const JobForm = ({
               disabled={isFormDisabled}
             />
           </div>
-
-          {/* Post Type Selection - Only for create mode */}
-          {mode === 'create' && showPostTypes && (
-            <div className="form-group">
-              <label className="form-label">
-                Post Type <span className="required">*</span>
-                {!userPackage && <span className="package-required">(Package Required)</span>}
-              </label>
-              <div className="post-type-selection">
-                {availablePostTypes.length > 0 ? (
-                  availablePostTypes.map(postType => {
-                    const style = getPostTypeStyle(postType.type);
-                    const isSelected = formData.postAt === postType.type;
-                    const isAvailable = postType.isAvailable;
-                    
-                    return (
-                      <div
-                        key={postType.type}
-                        className={`post-type-option ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''} ${!userPackage ? 'package-required-item' : ''}`}
-                        onClick={() => {
-                          if (isAvailable && !isFormDisabled && userPackage) {
-                            setFormData(prev => ({ ...prev, postAt: postType.type }));
-                          }
-                        }}
-                        style={{
-                          borderColor: isSelected ? style.color : '#e2e8f0',
-                          backgroundColor: isSelected ? style.bgColor : 'white'
-                        }}
-                      >
-                        <div className="post-type-header">
-                          <span className="post-type-icon">{style.icon}</span>
-                          <span className="post-type-name">{postType.name}</span>
-                          <span className={`post-type-remaining ${!isAvailable ? 'depleted' : ''}`}>
-                            {postType.remaining} / {postType.limit}
-                          </span>
-                        </div>
-                        <p className="post-type-description">{postType.description}</p>
-                        {!isAvailable && (
-                          <div className="post-type-unavailable">
-                            <span>No posts remaining</span>
-                          </div>
-                        )}
-                        {!userPackage && (
-                          <div className="post-type-package-required">
-                            <span>Package required</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : !userPackage ? (
-                  <div className="no-package-message">
-                    <span className="warning-icon">📦</span>
-                    <div className="no-package-content">
-                      <h4>Package Required</h4>
-                      <p>Purchase a package to see available post types.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="no-post-types">
-                    <span className="warning-icon">⚠️</span>
-                    <p>No post types available</p>
-                  </div>
-                )}
-              </div>
-              {formErrors.postAt && (
-                <span className="error-message">{formErrors.postAt}</span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Skills Section */}
@@ -794,7 +622,7 @@ const JobForm = ({
           <p className="section-description">
             Select the skills required for this position
           </p>
-          
+
           <div className="skills-container">
             <div className="available-skills">
               <h4>Available Skills ({formOptions.skills.length})</h4>
@@ -802,6 +630,11 @@ const JobForm = ({
                 <div className="skills-loading">
                   <div className="loading-spinner-small"></div>
                   <span>Loading skills...</span>
+                </div>
+              ) : formOptions.skills.length === 0 ? (
+                <div className="no-skills">
+                  <span className="warning-icon">📝</span>
+                  <p>No skills available. Please contact admin to add skills.</p>
                 </div>
               ) : (
                 <div className="skills-grid">
@@ -822,7 +655,7 @@ const JobForm = ({
                 </div>
               )}
             </div>
-            
+
             {selectedSkills.length > 0 && (
               <div className="selected-skills">
                 <h4>Selected Skills ({selectedSkills.length})</h4>
@@ -847,10 +680,10 @@ const JobForm = ({
         </div>
 
         {/* Error Display */}
-        {(submitError || formErrors.package) && (
+        {submitError && (
           <div className="submit-error">
             <span className="error-icon">⚠️</span>
-            <span className="error-text">{submitError || formErrors.package}</span>
+            <span className="error-text">{submitError}</span>
           </div>
         )}
 
@@ -864,7 +697,7 @@ const JobForm = ({
           >
             Cancel
           </button>
-          
+
           {onSaveAsDraft && (
             <button
               type="button"
@@ -875,7 +708,7 @@ const JobForm = ({
               {isSubmitting ? 'Saving...' : 'Save as Draft'}
             </button>
           )}
-          
+
           <button
             type="submit"
             className="btn btn-primary"

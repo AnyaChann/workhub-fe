@@ -35,7 +35,7 @@
 }
 
 /* ✅ Modal Overlay - Enhanced */
-.modal-overlay
+/* .modal-overlay
  {
   position: fixed;
   top: 0;
@@ -50,7 +50,7 @@
   z-index: 9999;
   padding: 20px;
   animation: fadeIn 0.2s ease-out;
-}
+} */
 
 @keyframes fadeIn {
   from {

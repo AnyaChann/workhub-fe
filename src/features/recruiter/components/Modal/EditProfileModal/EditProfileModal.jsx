@@ -10,9 +10,9 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
     avatarFile: null,
     avatarPreview: null
   });
-  
+
   const [formErrors, setFormErrors] = useState({});
-  
+
   // Cập nhật formData khi profileData thay đổi
   useEffect(() => {
     if (isOpen && profileData) {
@@ -21,19 +21,20 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
         email: profileData.email || '',
         phone: profileData.phone || '',
         avatarFile: null,
-        avatarPreview: profileData.avatar || null
+        // ✅ Use avatarUrl for preview
+        avatarPreview: profileData.avatarUrl || profileData.avatar || null
       });
       setFormErrors({});
     }
   }, [isOpen, profileData]);
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when field is edited
     if (formErrors[name]) {
       setFormErrors(prev => ({
@@ -42,11 +43,11 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
       }));
     }
   };
-  
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Kiểm tra kích thước và loại file
     if (file.size > 5 * 1024 * 1024) {
       setFormErrors(prev => ({
@@ -55,7 +56,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
       }));
       return;
     }
-    
+
     if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
       setFormErrors(prev => ({
         ...prev,
@@ -63,13 +64,13 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
       }));
       return;
     }
-    
+
     setFormData(prev => ({
       ...prev,
       avatarFile: file,
       avatarPreview: URL.createObjectURL(file)
     }));
-    
+
     // Clear avatar error if exists
     if (formErrors.avatar) {
       setFormErrors(prev => ({
@@ -78,38 +79,51 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
       }));
     }
   };
-  
+
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.fullname.trim()) {
       errors.fullname = 'Full name is required';
     }
-    
+
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Email is invalid';
     }
-    
+
     if (formData.phone && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im.test(formData.phone)) {
       errors.phone = 'Phone number is invalid';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
-      onSave(formData);
+      // ✅ Pass the exact data needed by the API
+      const submitData = {
+        fullname: formData.fullname.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        avatarFile: formData.avatarFile // File object (will be converted to byte array by service)
+      };
+
+      console.log('📤 Submitting profile data:', {
+        ...submitData,
+        avatarFile: submitData.avatarFile ? `File: ${submitData.avatarFile.name}` : null
+      });
+
+      onSave(submitData);
     }
   };
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -117,12 +131,12 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
           <h2>Edit Profile</h2>
           <button className="close-btn" onClick={onClose} disabled={loading}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="avatar-upload">
             <div className="avatar-preview">
               {formData.avatarPreview ? (
-                <img 
+                <img
                   src={formData.avatarPreview}
                   alt="Avatar Preview"
                   className="avatar-image"
@@ -137,7 +151,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
                 </div>
               )}
             </div>
-            
+
             <div className="upload-actions">
               <label htmlFor="avatar-input" className="upload-btn">
                 {formData.avatarFile ? 'Change Photo' : 'Upload Photo'}
@@ -165,12 +179,12 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
                 </button>
               )}
             </div>
-            
+
             {formErrors.avatar && (
               <div className="error-message">{formErrors.avatar}</div>
             )}
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="fullname">Full Name</label>
             <input
@@ -186,7 +200,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
               <div className="error-message">{formErrors.fullname}</div>
             )}
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -202,7 +216,7 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
               <div className="error-message">{formErrors.email}</div>
             )}
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="phone">Phone Number</label>
             <input
@@ -219,18 +233,18 @@ const EditProfileModal = ({ isOpen, onClose, profileData, onSave, loading }) => 
               <div className="error-message">{formErrors.phone}</div>
             )}
           </div>
-          
+
           <div className="modal-footer">
-            <button 
-              type="button" 
-              className="cancel-btn" 
+            <button
+              type="button"
+              className="cancel-btn"
               onClick={onClose}
               disabled={loading}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="submit-btn"
               disabled={loading}
             >
